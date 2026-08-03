@@ -158,6 +158,55 @@ class WebhookPayload(BaseModel):
     likes: Optional[int] = 0
     retweets: Optional[int] = 0
 
+class IngestedNews(BaseModel):
+    id: str
+    text: str
+    author: str
+    timestamp: Optional[str] = None
+
+class IngestNewsRequest(BaseModel):
+    articles: List[IngestedNews]
+
+@app.post("/api/ingest_news")
+def ingest_news_from_n8n(req: IngestNewsRequest, db: Session = Depends(get_db)):
+    """Receives parsed news articles directly from n8n webhook, analyzes sentiment, and stores them."""
+    processed = 0
+    for article in req.articles:
+        existing = db.query(TweetModel).filter(TweetModel.id == article.id).first()
+        if existing:
+            continue
+            
+        analysis = analyzer.analyze_text(article.text)
+        
+        tweet_record = TweetModel(
+            id=article.id,
+            text=article.text,
+            author=article.author,
+            handle=f"@{article.author.replace(' ', '')}",
+            timestamp=datetime.now(timezone.utc),
+            likes=0,
+            retweets=0,
+            topic="NEWS_INGESTION"
+        )
+        db.add(tweet_record)
+        
+        sentiment_record = SentimentScoreModel(
+            tweet_id=article.id,
+            sentiment=analysis["sentiment"],
+            confidence=float(analysis["confidence"]),
+            frustration_score=float(analysis["emotions"]["frustration"]),
+            happiness_score=float(analysis["emotions"]["happiness"]),
+            sarcasm_detected=bool(analysis["sarcasm_detected"]),
+            crisis_score=float(analysis["crisis_score"])
+        )
+        db.add(sentiment_record)
+        processed += 1
+        
+    db.commit()
+    logger.info(f"Ingested {processed} new articles from n8n.")
+    return {"status": "success", "processed": processed}
+
+
 class UserRegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=6)

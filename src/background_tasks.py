@@ -6,68 +6,17 @@ import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any
 from sqlalchemy.orm import Session
-
 from src.db.models import SessionLocal, TweetModel, SentimentScoreModel, CrisisAlertModel, HourlyAggregateModel
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.crisis_detector import CrisisDetector
-from src.news_scraper import NewsScraper
 from src.logging_config import get_logger
 
 logger = get_logger("BackgroundTasks")
 
 analyzer = SentimentAnalyzer()
 crisis_detector = CrisisDetector(z_threshold=2.5)
-scraper = NewsScraper()
 
 _running = False
-
-def ingest_and_process_tweets(db: Session, keywords: List[str] = None) -> int:
-    """Streams tweets, analyzes sentiment, and persists to database."""
-    if keywords is None:
-        keywords = ["@TechBrand", "#TechBrand", "@CompetitorA"]
-
-    raw_tweets = scraper.stream_keywords(keywords, max_tweets=5)
-    processed_count = 0
-
-    for item in raw_tweets:
-        t_id = item["id"]
-        # Skip if tweet already exists in DB
-        existing = db.query(TweetModel).filter(TweetModel.id == t_id).first()
-        if existing:
-            continue
-
-        # Run Sentiment & Entity Analysis
-        analysis = analyzer.analyze_text(item["text"])
-
-        # Persist Tweet Model
-        tweet_record = TweetModel(
-            id=t_id,
-            text=item["text"],
-            author=item["author"],
-            handle=item["handle"],
-            timestamp=datetime.now(timezone.utc),
-            likes=item["likes"],
-            retweets=item["retweets"],
-            topic=keywords[0] if keywords else "GENERAL"
-        )
-        db.add(tweet_record)
-
-        # Persist Sentiment Score Model
-        sentiment_record = SentimentScoreModel(
-            tweet_id=t_id,
-            sentiment=analysis["sentiment"],
-            confidence=float(analysis["confidence"]),
-            frustration_score=float(analysis["emotions"]["frustration"]),
-            happiness_score=float(analysis["emotions"]["happiness"]),
-            sarcasm_detected=bool(analysis["sarcasm_detected"]),
-            crisis_score=float(analysis["crisis_score"])
-        )
-        db.add(sentiment_record)
-        processed_count += 1
-
-    db.commit()
-    logger.info(f"Ingested & processed {processed_count} new news articles into DB.")
-    return processed_count
 
 def run_crisis_detection_job(db: Session) -> Dict[str, Any]:
     """Calculates rolling negative sentiment Z-Score and creates alert if Z >= 2.5."""
@@ -168,22 +117,16 @@ def run_cleanup_job(db: Session, retention_days: int = 7) -> int:
     logger.info(f"Purged {count} old tweets beyond {retention_days} days retention.")
     return count
 
-async def background_loop():
-    """Async background worker executing periodic pipeline jobs every 30s."""
-    global _running
-    logger.info("Starting SentimentPulse AI background worker task...")
+async def scheduler_loop():
+    logger.info("Background Scheduler Loop Started (Awaiting n8n ingestion).")
     while _running:
         try:
-            db = SessionLocal()
-            try:
-                ingest_and_process_tweets(db)
+            with SessionLocal() as db:
+                # No python ingestion here anymore; n8n handles RSS feed pulling.
                 run_crisis_detection_job(db)
                 run_hourly_aggregation_job(db)
-            finally:
-                db.close()
         except Exception as e:
-            logger.error(f"Error in background task loop: {e}")
-
+            logger.error(f"Error in scheduler loop: {e}")
         await asyncio.sleep(30)
 
 def start_background_scheduler():
