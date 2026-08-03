@@ -1,19 +1,9 @@
 import React from "react";
 import {
-  Activity,
   AlertTriangle,
-  Play,
-  Pause,
   Radio,
-  BarChart2,
-  Cpu,
-  Workflow,
-  Server,
   RefreshCw,
-  Home,
-  Users,
   Download,
-  ChevronDown,
 } from "lucide-react";
 import { StreamStats } from "../types";
 
@@ -48,28 +38,28 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Colorful Google Triangle 'A' Icon */}
           <div className="relative w-6 h-6 flex items-center justify-center">
             <svg viewBox="0 0 24 24" className="w-6 h-6">
-              <path d="M12 2L2 22h20L12 2z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" className="text-slate-900" />
+              <path d="M12 2L2 22h20L12 2z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" className="text-slate-950" />
               <path d="M12 2L6 14h12L12 2z" fill="#4285F4" />
               <circle cx="12" cy="18" r="2" fill="#EA4335" />
             </svg>
           </div>
 
-          <div className="flex items-baseline space-x-1.5">
-            <span className="text-base font-bold tracking-tight text-slate-900 font-['Outfit']">
-              Google <span className="font-medium text-slate-700">Antigravity</span>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-base font-extrabold tracking-tight text-slate-950 font-['Outfit']">
+              Google <span className="font-bold text-slate-800">Antigravity</span>
             </span>
-            <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 hidden sm:inline-block">
+            <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 hidden sm:inline-block">
               SentimentPulse.AI
             </span>
           </div>
         </div>
 
-        {/* Center: Minimalist Dropdown Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-xs font-medium text-slate-600">
+        {/* Center: Minimalist Bold Dropdown Navigation */}
+        <nav className="hidden md:flex items-center space-x-6 text-xs font-extrabold text-slate-700">
           <button
             onClick={() => setActiveTab("overview")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "overview" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "overview" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             Overview
@@ -77,8 +67,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "dashboard" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "dashboard" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             Crisis Dashboard
@@ -86,8 +76,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab("sandbox")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "sandbox" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "sandbox" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             NLP Inference
@@ -95,8 +85,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab("n8n")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "n8n" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "n8n" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             n8n Automation
@@ -104,8 +94,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab("about")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "about" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "about" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             About Us
@@ -113,8 +103,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           <button
             onClick={() => setActiveTab("infra")}
-            className={`hover:text-slate-900 transition-colors py-1 ${
-              activeTab === "infra" ? "text-slate-900 font-bold border-b-2 border-slate-900" : ""
+            className={`hover:text-slate-950 transition-colors py-1 ${
+              activeTab === "infra" ? "text-slate-950 font-black border-b-2 border-slate-950" : ""
             }`}
           >
             Infrastructure
@@ -124,17 +114,17 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Right: Actions & Download Pill Button */}
         <div className="flex items-center space-x-3">
           {/* Live Indicator Pill */}
-          <div className="hidden lg:flex items-center px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs">
+          <div className="hidden lg:flex items-center px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold">
             <Radio
               className={`w-3.5 h-3.5 mr-1.5 ${
                 stats.isStreaming ? "text-emerald-600 animate-ping" : "text-slate-400"
               }`}
             />
-            <span className="font-semibold text-slate-800">
+            <span className="font-extrabold text-slate-900">
               {stats.isStreaming ? "LIVE STREAM" : "PAUSED"}
             </span>
             <span className="mx-2 text-slate-300">|</span>
-            <span className="text-slate-600 font-mono-code">
+            <span className="text-slate-700 font-mono-code font-bold">
               {stats.tweetsPerMin} tpm
             </span>
           </div>
@@ -144,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => onSimulateSpike("TRIGGER")}
               disabled={isTriggeringSpike}
-              className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 font-bold text-xs flex items-center space-x-1.5 border border-rose-200 transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 font-extrabold text-xs flex items-center space-x-1.5 border border-rose-200 transition-all"
             >
               <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
               <span>Simulate PR Crisis</span>
@@ -153,17 +143,17 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => onSimulateSpike("RESOLVE")}
               disabled={isTriggeringSpike}
-              className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center space-x-1.5 transition-all"
+              className="px-3.5 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center space-x-1.5 transition-all"
             >
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
               <span>Resolve Crisis</span>
             </button>
           )}
 
-          {/* Top Right Black Pill Download CTA Button (matches screenshot!) */}
+          {/* Top Right Black Pill Download CTA Button */}
           <button
             onClick={() => setActiveTab("infra")}
-            className="antigravity-pill-primary text-xs flex items-center space-x-1.5 py-2 px-4 shadow-sm"
+            className="antigravity-pill-primary text-xs flex items-center space-x-1.5 py-2 px-4 shadow-sm font-extrabold"
           >
             <span>Download</span>
             <Download className="w-3.5 h-3.5 ml-0.5" />
@@ -173,7 +163,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Sub Navigation Strip for Mobile Screens */}
       <div className="md:hidden border-t border-slate-200 bg-slate-50 py-2 px-4 overflow-x-auto scrollbar-none">
-        <nav className="flex space-x-3 text-xs font-semibold text-slate-700">
+        <nav className="flex space-x-3 text-xs font-extrabold text-slate-800">
           <button onClick={() => setActiveTab("overview")} className="whitespace-nowrap">Overview</button>
           <button onClick={() => setActiveTab("dashboard")} className="whitespace-nowrap">Dashboard</button>
           <button onClick={() => setActiveTab("sandbox")} className="whitespace-nowrap">NLP Sandbox</button>
