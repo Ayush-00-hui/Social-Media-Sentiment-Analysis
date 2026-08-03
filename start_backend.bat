@@ -49,21 +49,22 @@ echo.
 
 :: Start ngrok static tunnel in a separate window
 echo [INFO] Starting ngrok static tunnel...
-start "Traccia ngrok Tunnel" cmd /k "ngrok http 8001 --domain=diffuser-thousand-rule.ngrok-free.dev"
+start "Traccia ngrok Tunnel" cmd /k "FOR /F ""tokens=1,2 delims=="" %%G IN (.env) DO (if %%G==NGROK_AUTHTOKEN set NGROK_TOKEN=%%H) & if defined NGROK_TOKEN (ngrok config add-authtoken !NGROK_TOKEN!) & ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
 echo [SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev
 echo.
 
 :: Start FastAPI Backend Server
 echo ===================================================
 echo   FASTAPI BACKEND ENGINE STARTING ON PORT 8001
-echo   Local:  http://localhost:8001/
 echo   Swagger UI: http://localhost:8001/docs
 echo   Ngrok URL: https://diffuser-thousand-rule.ngrok-free.dev
 echo ===================================================
 echo.
 
 :: Open the status page in default browser
-start http://localhost:8001/
+set PROJECT_DIR=%~dp0
+if "%PROJECT_DIR:~-1%"=="\" set PROJECT_DIR=%PROJECT_DIR:~0,-1%
+start "" "%PROJECT_DIR%\backend_status.html"
 
 uvicorn src.app:app --host "::" --port 8001 --reload
 
