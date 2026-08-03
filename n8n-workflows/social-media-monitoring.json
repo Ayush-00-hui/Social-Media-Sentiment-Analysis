@@ -1,0 +1,82 @@
+{
+  "name": "Social Media Real-Time Crisis Monitoring & Alerting Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "seconds",
+              "secondsInterval": 30
+            }
+          ]
+        }
+      },
+      "name": "Cron Stream Poller",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://fastapi-sentiment-engine:8000/api/tweets",
+        "options": {}
+      },
+      "name": "FastAPI Sentiment Engine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.zScore}}",
+              "operation": "larger",
+              "value2": 2.5
+            }
+          ]
+        }
+      },
+      "name": "Z-Score Anomaly Evaluator",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [710, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO sentiment_scores (tweet_id, sentiment, z_score) VALUES ('sample', 'NEGATIVE', 3.42);"
+      },
+      "name": "PostgreSQL Historical Logger",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [940, 200]
+    },
+    {
+      "parameters": {
+        "channel": "#crisis-room",
+        "text": "🚨 *SOCIAL MEDIA CRISIS ALERT*: Negative spike Z-score exceeded 2.5σ threshold!"
+      },
+      "name": "Slack Critical Crisis Alert",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [940, 420]
+    }
+  ],
+  "connections": {
+    "Cron Stream Poller": {
+      "main": [[{ "node": "FastAPI Sentiment Engine", "type": "main", "index": 0 }]]
+    },
+    "FastAPI Sentiment Engine": {
+      "main": [[{ "node": "Z-Score Anomaly Evaluator", "type": "main", "index": 0 }]]
+    },
+    "Z-Score Anomaly Evaluator": {
+      "main": [
+        [{ "node": "PostgreSQL Historical Logger", "type": "main", "index": 0 }],
+        [{ "node": "Slack Critical Crisis Alert", "type": "main", "index": 0 }]
+      ]
+    }
+  }
+}

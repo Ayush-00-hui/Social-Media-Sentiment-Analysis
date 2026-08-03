@@ -1,0 +1,6 @@
+{
+  "name": "SentimentPulse AI",
+  "description": "Real-time social media sentiment analysis, BERT & Gemini powered crisis detection, emotion breakdown, and automated n8n pipeline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

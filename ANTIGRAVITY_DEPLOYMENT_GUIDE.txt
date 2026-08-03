@@ -1,0 +1,125 @@
+================================================================================
+ANTIGRAVITY DEPLOYMENT GUIDANCE PROMPT & STEP-BY-STEP COMMAND MANUAL
+Project: Social Media Sentiment Analysis & Crisis Engine (Self-Hosted)
+Target User: Ayush (Guided Self-Hosting Deployment on Home PC Server)
+================================================================================
+
+[INSTRUCTIONS FOR ANTIGRAVITY AGENT]:
+You are acting as an expert DevOps & AI Engineering Mentor guiding Ayush through 
+deploying the Social Media Sentiment Analysis system on his 24/7 home server. 
+DO NOT execute deployment actions blindly. Instead, guide Ayush step-by-step, 
+explain where to run each grouped command block, point out required line changes 
+in configuration files, and verify each step together.
+
+================================================================================
+STEP 1: REPOSITORY SETUP & ENVIRONMENT CONFIGURATION
+================================================================================
+
+Where to run: On Home PC Server Terminal in your projects directory (`~/projects`).
+
+Grouped Command Block #1:
+```bash
+# Navigate to projects directory
+cd ~/projects
+
+# Clone project from self-hosted Gitea repository
+git clone https://gitea.local/ayush/social-media-sentiment.git
+cd social-media-sentiment
+
+# Create environment variable file from template
+cp .env.example .env
+```
+
+Necessary Line Edits in `.env` File:
+Open `.env` using your text editor (e.g. `nano .env` or VS Code Server) and update lines:
+  - Line 2: Set `GEMINI_API_KEY=your_actual_gemini_api_key_here`
+  - Line 5: Set `POSTGRES_PASSWORD=your_secure_db_password`
+  - Line 8: Set `N8N_PASSWORD=your_secure_n8n_password`
+
+================================================================================
+STEP 2: DOCKER COMPOSE ORCHESTRATION & DATABASE INITIALIZATION
+================================================================================
+
+Where to run: Inside `/projects/social-media-sentiment` directory on Home PC.
+
+Grouped Command Block #2:
+```bash
+# Build Docker images and start all services in detached mode
+docker-compose -f docker/docker-compose.yml up --build -d
+
+# Check status of running containers
+docker-compose -f docker/docker-compose.yml ps
+
+# Inspect logs to verify PostgreSQL schema initialization
+docker-compose -f docker/docker-compose.yml logs postgres-db
+```
+
+Configuration Line Verification (`docker/docker-compose.yml`):
+Ensure the following ports and volume mounts are configured:
+  - Line 11: `3000:3000` (Main Web Dashboard & Express/FastAPI API)
+  - Line 24: `5432:5432` (PostgreSQL Database)
+  - Line 27: `../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql` (Auto-creates tables)
+  - Line 32: `5678:5678` (n8n Community Edition)
+
+================================================================================
+STEP 3: CLOUDFLARE TUNNEL SECURE REMOTE ACCESS
+================================================================================
+
+Where to run: On Home PC Server Terminal (where `cloudflared` is installed).
+
+Grouped Command Block #3:
+```bash
+# Create Cloudflare Tunnel routing rule for Web App
+cloudflared tunnel route dns home-server-tunnel sentiment.ayush.dev
+
+# Run cloudflared ingress rule setup (or add to ~/.cloudflared/config.yml)
+# Ingress config required in ~/.cloudflared/config.yml:
+# - hostname: sentiment.ayush.dev
+#   service: http://localhost:3000
+# - hostname: n8n.ayush.dev
+#   service: http://localhost:5678
+
+# Restart cloudflared service
+sudo systemctl restart cloudflared
+```
+
+================================================================================
+STEP 4: IMPORT N8N WORKFLOW FOR AUTOMATED SLACK ALERTS
+================================================================================
+
+Guide Ayush through setting up n8n in the browser:
+1. Open http://localhost:5678 in browser (or https://n8n.ayush.dev).
+2. Log in using `admin` / `${N8N_PASSWORD}`.
+3. Click "Workflows" -> "Import from File".
+4. Select `/projects/social-media-sentiment/n8n-workflows/social-media-monitoring.json`.
+5. Update Slack credentials node with incoming webhook URL for `#crisis-room`.
+6. Click "Activate" workflow toggle.
+
+================================================================================
+STEP 5: END-TO-END VERIFICATION & HEALTH CHECKS
+================================================================================
+
+Where to run: Terminal or Browser.
+
+Grouped Command Block #4:
+```bash
+# Test FastAPI Backend Health Endpoint
+curl -X GET http://localhost:3000/api/current_sentiment
+
+# Test Manual NLP Analysis Endpoint (Sarcasm test)
+curl -X POST http://localhost:3000/api/manual_analyze \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Oh great, another update that completely broke auth. Fantastic work... /s"}'
+
+# Test Crisis Spike Simulation Endpoint
+curl -X POST http://localhost:3000/api/simulate_spike \
+  -H "Content-Type: application/json" \
+  -d '{"action": "TRIGGER", "topic": "Cloud Outage & Data Sync Bug"}'
+```
+
+Verification Checklist for Antigravity:
+[ ] All 3 Docker containers (`fastapi-sentiment-engine`, `sentiment_postgres`, `n8n`) report status 'Up'.
+[ ] PostgreSQL contains tables `tweets`, `sentiment_scores`, `crisis_alerts`, and `hourly_aggregates`.
+[ ] Web dashboard loads on port 3000 and displays live gauge & 24h sentiment charts.
+[ ] Crisis spike simulation triggers bright red alert panel and fires n8n notification callback.
+================================================================================

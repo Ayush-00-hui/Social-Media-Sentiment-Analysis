@@ -1,0 +1,141 @@
+================================================================================
+SENTIMENTPULSE AI - DEEP KEYWORD & CONCEPT DICTIONARY
+Project: Social Media Sentiment Analysis & Real-Time PR Crisis Detection
+Target Audience: Ayush & Interview Reviewers (US Tech Company Preparation)
+================================================================================
+
+This document provides in-depth technical explanations of all key concepts,
+algorithms, architectures, and terminology utilized throughout the SentimentPulse AI
+project workspace.
+
+--------------------------------------------------------------------------------
+1. NATURAL LANGUAGE PROCESSING (NLP) & MODEL ARCHITECTURES
+--------------------------------------------------------------------------------
+
+[NLP (Natural Language Processing)]
+- Definition: A field of artificial intelligence focused on enabling computers to 
+  understand, interpret, process, and generate human language in a meaningful way.
+- Application in Project: Used to continuously process unstructured raw text from 
+  Twitter/X comments and extract structured numerical insights (sentiment scores, 
+  emotion probabilities, entities, and sarcasm flags).
+
+[BERT (Bidirectional Encoder Representations from Transformers)]
+- Definition: A landmark transformer-based neural network architecture developed 
+  by Google. Unlike traditional language models that read text sequentially (left-to-right), 
+  BERT evaluates word context bidirectionally (looking at words to the left and right 
+  simultaneously).
+- Deep Mechanics: Uses self-attention mechanisms to weigh the relative importance of 
+  each word in a sentence regarding all other words.
+- DistilBERT (Used in Pipeline): A distilled, lightweight version of BERT developed 
+  by Hugging Face. It is 40% smaller and 60% faster than standard BERT while retaining 
+  97% of its language understanding capabilities, making it ideal for low-latency 
+  (<100ms) real-time streaming inference on self-hosted hardware.
+
+[Gemini 3.6 Flash]
+- Definition: Google's state-of-the-art multimodal AI model optimized for speed, 
+  high throughput, and complex reasoning.
+- Application in Project: Acts as the high-intelligence secondary NLP engine in server.ts. 
+  It performs deep zero-shot contextual reasoning, outputs strictly typed JSON schemas, 
+  resolves subtle sarcastic phrasing, extracts entity names, and auto-generates PR crisis 
+  response statements for incident response teams.
+
+
+--------------------------------------------------------------------------------
+2. SENTIMENT, EMOTION & CONTEXT ANALYSIS
+--------------------------------------------------------------------------------
+
+[Sentiment Classification (POS / NEU / NEG)]
+- POSITIVE: Content expressing satisfaction, praise, excitement, or endorsement.
+- NEUTRAL: Factual statements, inquiries, or comparative questions without strong emotional bias.
+- NEGATIVE: Expressions of dissatisfaction, bug reports, outages, or complaints.
+
+[Emotion Spectrum Probability]
+- Definition: Fine-grained emotional breakdown going beyond basic 3-way sentiment.
+- Key Metrics Evaluated:
+  * Frustration (0-100%): Measures user friction with broken workflows or delayed responses.
+  * Anger (0-100%): Indicates severe dissatisfaction, often preceding churn or viral backlash.
+  * Happiness (0-100%): Tracks user delight and product feature adoption.
+  * Surprise (0-100%): Measures unexpected user reactions (e.g., unexpected breaking changes).
+
+[Sarcasm & Irony Detection]
+- Problem Statement: Sarcasm is one of the hardest problems in NLP because surface-level 
+  words appear positive ("Great job team", "Fantastic update") while the intended meaning 
+  is strongly negative.
+- Solution in Project: A hybrid multi-modal signal strategy:
+  1. Lexical Heuristics: Identifies contrastive phrasing (positive praise words juxtaposed 
+     with failure terms like "broke", "down", "error", or trailing "/s" markers).
+  2. Engagement Anomaly: Evaluates low likes/retweets relative to negative comments.
+  3. Gemini Transformer Attention: Evaluates contextual intent across the full sentence structure.
+
+[NER (Named Entity Recognition)]
+- Definition: An NLP technique that identifies and classifies key entities in unstructured 
+  text into predefined categories.
+- Application in Project: Categorizes text into:
+  * BRAND: e.g., @TechBrand (our company)
+  * COMPETITOR: e.g., @CompetitorA, @CompetitorB
+  * PRODUCT: e.g., API authentication, OAuth SDK, Dark Mode
+  * PERSON / LOCATION: Specific developers, research teams, or server regions (e.g., US-East).
+
+
+--------------------------------------------------------------------------------
+3. STATISTICAL ANOMALY & CRISIS DETECTION
+--------------------------------------------------------------------------------
+
+[Z-Score Anomaly Detection]
+- Mathematical Formula:
+  Z = (x - μ) / σ
+  where:
+  * x = Current hourly count of negative tweets
+  * μ (Mu) = Mean (average) hourly negative tweet count over the rolling 24-hour baseline
+  * σ (Sigma) = Standard deviation of negative tweet count over the rolling 24-hour baseline
+
+- Deep Concept: Z-score measures how many standard deviations a data point is away 
+  from the historical mean. Instead of using a fixed count threshold (which fails due 
+  to day/night volume fluctuations), Z-score dynamically adapts to organic traffic curves.
+
+[PR Crisis Severity Scale]
+- LOW (Z < 1.5σ): Normal baseline noise.
+- MEDIUM (1.5σ <= Z < 2.5σ): Moderate volatility; flagged for monitoring.
+- HIGH (2.5σ <= Z < 4.0σ): Significant surge in negative sentiment; incident alert created.
+- CRITICAL (Z >= 4.0σ): Severe statistical anomaly (>4 std devs above normal); 
+  triggers immediate PagerDuty / Slack escalation and automated PR statement drafting.
+
+[Net Sentiment Score / NPS Index]
+- Formula: NPS = (% Positive Tweets) - (% Negative Tweets)
+- Range: -100 (100% Negative) to +100 (100% Positive). Used to benchmark brand health 
+  against market competitors in real-time.
+
+
+--------------------------------------------------------------------------------
+4. SYSTEM ARCHITECTURE & AUTOMATION KEYWORDS
+--------------------------------------------------------------------------------
+
+[FastAPI]
+- Definition: A modern, high-performance web framework for building REST APIs with Python 
+  3.10+, based on standard Python type hints and Pydantic validation.
+- Role in App: Exposes `/api/current_sentiment`, `/api/tweets`, and `/api/manual_analyze` 
+  endpoints with sub-10ms response times.
+
+[n8n Workflow Automation]
+- Definition: A self-hosted, node-based workflow automation platform (Community Edition).
+- Nodes in Project:
+  1. Cron Stream Poller: Triggers continuous execution every 30 seconds.
+  2. HTTP Request Node: Fetches sentiment output from FastAPI/Gemini engine.
+  3. IF Anomaly Evaluator: Evaluates if Z-Score >= 2.5σ.
+  4. Postgres Node: Logs time-series data to self-hosted database.
+  5. Slack Webhook Node: Sends critical incident payload to #crisis-room channel.
+
+[PostgreSQL & Time-Series Logging]
+- Role in App: Relational database storing raw tweets, sentiment scores, crisis alerts, 
+  and hourly rollups for historical trend analysis.
+
+[Docker & Docker Compose]
+- Containerization: Packaging an app and all its dependencies into an isolated container image.
+- Docker Compose: A tool for defining and running multi-container applications using a single 
+  `docker-compose.yml` file (orchestrating FastAPI, PostgreSQL, and n8n).
+
+[Cloudflare Tunnels]
+- Definition: A tunneling service that creates a secure outbound-only connection from a 
+  home server to Cloudflare's edge network, exposing local web applications over TLS/HTTPS 
+  without opening open inbound firewall ports.
+================================================================================
