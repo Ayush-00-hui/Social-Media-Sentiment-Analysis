@@ -7,6 +7,7 @@ export const SettingsPage: React.FC = () => {
   const { user, token, updateKeywords } = useAuth();
   const [brandKeywords, setBrandKeywords] = useState<string[]>(user?.brand_keywords || []);
   const [competitorKeywords, setCompetitorKeywords] = useState<string[]>(user?.competitor_keywords || []);
+  const [notificationEmails, setNotificationEmails] = useState<string[]>(user?.notification_emails || []);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -32,7 +33,8 @@ export const SettingsPage: React.FC = () => {
         },
         body: JSON.stringify({
           brand_keywords: brandKeywords,
-          competitor_keywords: competitorKeywords
+          competitor_keywords: competitorKeywords,
+          notification_emails: notificationEmails
         })
       });
 
@@ -41,7 +43,7 @@ export const SettingsPage: React.FC = () => {
         throw new Error(data.detail || 'Failed to update settings');
       }
 
-      updateKeywords(brandKeywords, competitorKeywords);
+      updateKeywords(brandKeywords, competitorKeywords, notificationEmails);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
@@ -93,6 +95,18 @@ export const SettingsPage: React.FC = () => {
           description="Track competitor mentions for the Brand Comparison matrix."
           tags={competitorKeywords}
           onChange={setCompetitorKeywords}
+        />
+
+        <div style={{ marginTop: 24, marginBottom: 24, height: 1, background: '#e8eaed' }}></div>
+
+        <h3 style={{ fontFamily: 'Syne', fontSize: '1.25rem', marginBottom: 8 }}>Alert Recipients</h3>
+        <p style={{ fontFamily: 'DM Sans', color: '#5f6368', fontSize: '0.875rem', marginBottom: 24 }}>Email addresses that will receive PR Crisis Alerts and Daily Digests.</p>
+        
+        <TagInput
+          label="Notification Emails"
+          description="Type an email address and press Enter."
+          tags={notificationEmails}
+          onChange={setNotificationEmails}
         />
 
         <div style={{ marginTop: 32, display: 'flex', alignItems: 'center', gap: 16 }}>

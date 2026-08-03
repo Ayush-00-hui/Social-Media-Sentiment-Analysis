@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, HTTPException, Depends, Query, Request, status, Header, BackgroundTasks
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
 import urllib.request
@@ -225,12 +226,14 @@ class UserLoginRequest(BaseModel):
 class KeywordUpdateRequest(BaseModel):
     brand_keywords: List[str]
     competitor_keywords: List[str] = []
+    notification_emails: List[str] = []
 
 class UserProfileResponse(BaseModel):
     email: str
     company_name: str
     brand_keywords: List[str]
     competitor_keywords: List[str]
+    notification_emails: List[str]
     plan_tier: str
 
 def trigger_n8n_welcome_webhook(email: str, company_name: str):
@@ -273,6 +276,7 @@ def register_user(req: UserRegisterRequest, background_tasks: BackgroundTasks, d
             "company_name": user.company_name,
             "brand_keywords": json.loads(user.brand_keywords),
             "competitor_keywords": json.loads(user.competitor_keywords),
+            "notification_emails": json.loads(user.notification_emails) if hasattr(user, 'notification_emails') else [],
             "plan_tier": user.plan_tier
         }
     }
@@ -291,6 +295,7 @@ def login_user(req: UserLoginRequest, db: Session = Depends(get_db)):
             "company_name": user.company_name,
             "brand_keywords": json.loads(user.brand_keywords),
             "competitor_keywords": json.loads(user.competitor_keywords),
+            "notification_emails": json.loads(user.notification_emails) if hasattr(user, 'notification_emails') else [],
             "plan_tier": user.plan_tier
         }
     }
@@ -304,6 +309,7 @@ def get_user_profile(user: UserModel = Depends(get_current_user)):
         "company_name": user.company_name,
         "brand_keywords": json.loads(user.brand_keywords),
         "competitor_keywords": json.loads(user.competitor_keywords),
+        "notification_emails": json.loads(user.notification_emails) if hasattr(user, 'notification_emails') else [],
         "plan_tier": user.plan_tier
     }
 
@@ -316,6 +322,8 @@ def update_keywords(req: KeywordUpdateRequest, user: UserModel = Depends(get_cur
         
     user.brand_keywords = json.dumps(req.brand_keywords)
     user.competitor_keywords = json.dumps(req.competitor_keywords)
+    if hasattr(req, 'notification_emails'):
+        user.notification_emails = json.dumps(req.notification_emails)
     db.commit()
     db.refresh(user)
     
@@ -324,6 +332,7 @@ def update_keywords(req: KeywordUpdateRequest, user: UserModel = Depends(get_cur
         "company_name": user.company_name,
         "brand_keywords": json.loads(user.brand_keywords),
         "competitor_keywords": json.loads(user.competitor_keywords),
+        "notification_emails": json.loads(user.notification_emails) if hasattr(user, 'notification_emails') else [],
         "plan_tier": user.plan_tier
     }
 
@@ -345,13 +354,39 @@ def health_check(db: Session = Depends(get_db)):
         "demo_mode": DEMO_MODE
     }
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def read_root():
-    return {
-        "status": "ONLINE",
-        "engine": "FastAPI + DistilBERT NLP",
-        "docs": "/docs"
-    }
+    return """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Traccia Backend Status</title>
+        <style>
+            body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+            .container { text-align: center; background: rgba(30, 41, 59, 0.5); padding: 3rem; border-radius: 1rem; border: 1px solid #334155; backdrop-filter: blur(10px); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+            h1 { color: #38bdf8; margin-bottom: 0.5rem; font-size: 2.5rem; }
+            p { color: #94a3b8; font-size: 1.1rem; }
+            .badge { display: inline-block; background-color: #059669; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 600; font-size: 0.875rem; margin-top: 1rem; }
+            .links { margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; }
+            a { color: #38bdf8; text-decoration: none; border: 1px solid #38bdf8; padding: 0.5rem 1rem; border-radius: 0.5rem; transition: all 0.2s; }
+            a:hover { background-color: #38bdf8; color: #0f172a; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Traccia API</h1>
+            <p>FastAPI + DistilBERT NLP Engine</p>
+            <div class="badge">● ONLINE</div>
+            <div class="links">
+                <a href="/docs">Swagger UI</a>
+                <a href="/redoc">ReDoc</a>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
 
 @app.get("/api/current_sentiment")
 def get_current_sentiment(db: Session = Depends(get_db), user: Optional[UserModel] = Depends(get_current_user)):
@@ -412,7 +447,8 @@ def get_current_sentiment(db: Session = Depends(get_db), user: Optional[UserMode
                 "activeCrisisLevel": crisis_level,
                 "zScore": z_score,
                 "isStreaming": app_state["is_streaming"],
-                "isSpikeActive": app_state["is_spike_active"]
+                "isSpikeActive": app_state["is_spike_active"],
+                "notification_emails": json.loads(user.notification_emails) if user and hasattr(user, 'notification_emails') else []
             },
             "sentimentBreakdown": {
                 "positivePct": pos_pct,

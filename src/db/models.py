@@ -91,6 +91,7 @@ class UserModel(Base):
     company_name = Column(String(150), nullable=False)
     brand_keywords = Column(Text, nullable=False, default="[]")  # Stored as JSON string
     competitor_keywords = Column(Text, nullable=False, default="[]") # Stored as JSON string
+    notification_emails = Column(Text, nullable=False, default="[]") # Stored as JSON string
     plan_tier = Column(String(50), default="Enterprise Pro")
     registered_at = Column(DateTime, default=datetime.utcnow)
 

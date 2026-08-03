@@ -5,6 +5,7 @@ export interface UserProfile {
   company_name: string;
   brand_keywords: string[];
   competitor_keywords: string[];
+  notification_emails: string[];
   plan_tier: string;
 }
 
@@ -13,7 +14,7 @@ interface AuthContextType {
   user: UserProfile | null;
   login: (token: string, user: UserProfile) => void;
   logout: () => void;
-  updateKeywords: (brand: string[], comp: string[]) => void;
+  updateKeywords: (brand: string[], comp: string[], emails: string[]) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -39,9 +40,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem("traccia_user");
   };
 
-  const updateKeywords = (brand_keywords: string[], competitor_keywords: string[]) => {
+  const updateKeywords = (brand_keywords: string[], competitor_keywords: string[], notification_emails: string[]) => {
     if (user) {
-      const updated = { ...user, brand_keywords, competitor_keywords };
+      const updated = { ...user, brand_keywords, competitor_keywords, notification_emails };
       setUser(updated);
       localStorage.setItem("traccia_user", JSON.stringify(updated));
     }

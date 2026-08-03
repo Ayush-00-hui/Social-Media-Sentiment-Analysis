@@ -56,10 +56,14 @@ echo.
 :: Start FastAPI Backend Server
 echo ===================================================
 echo   FASTAPI BACKEND ENGINE STARTING ON PORT 8001
-echo   Local:  http://localhost:8001/docs
-echo   Public: https://diffuser-thousand-rule.ngrok-free.dev/docs
+echo   Local:  http://localhost:8001/
+echo   Swagger UI: http://localhost:8001/docs
+echo   Ngrok URL: https://diffuser-thousand-rule.ngrok-free.dev
 echo ===================================================
 echo.
+
+:: Open the status page in default browser
+start http://localhost:8001/
 
 uvicorn src.app:app --host "::" --port 8001 --reload
 

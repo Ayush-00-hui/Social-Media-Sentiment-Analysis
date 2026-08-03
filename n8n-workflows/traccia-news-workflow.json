@@ -258,7 +258,7 @@
     {
       "parameters": {
         "fromEmail": "digest@traccia.ai",
-        "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}",
+        "toEmail": "={{$node[\"D2. Get Daily Sentiment Summary\"].json.stats.notification_emails.join(\",\")}}",
         "subject": "Traccia \u2014 Daily Sentiment Digest",
         "html": "<h2>Daily Sentiment Summary</h2><p>{{$node[\"D3. Convert Articles To Paragraph Summary\"].json.paragraph}}</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">View full dashboard</a></p>"
       },
