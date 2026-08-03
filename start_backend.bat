@@ -53,6 +53,6 @@ echo   API Docs: http://localhost:8000/docs
 echo ===================================================
 echo.
 
-uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.app:app --host "::" --port 8000 --reload
 
 pause

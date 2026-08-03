@@ -45,4 +45,4 @@ Write-Host "  FastAPI Endpoint: http://localhost:8000" -ForegroundColor Green
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 
-uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+uvicorn src.app:app --host "::" --port 8000 --reload
