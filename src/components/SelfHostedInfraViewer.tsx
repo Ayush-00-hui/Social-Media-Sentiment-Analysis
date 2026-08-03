@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Server, Database, Code, CheckCircle, Terminal, Copy } from "lucide-react";
+import { Server, Database, Code, Copy } from "lucide-react";
 
 export const SelfHostedInfraViewer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"docker" | "schema" | "endpoints">("docker");
@@ -10,9 +10,9 @@ export const SelfHostedInfraViewer: React.FC = () => {
 services:
   postgres-db:
     image: postgres:15-alpine
-    container_name: sentimentpulse-postgres
+    container_name: traccia-postgres
     environment:
-      POSTGRES_DB: sentiment_db
+      POSTGRES_DB: traccia_db
       POSTGRES_USER: ayush_admin
       POSTGRES_PASSWORD: secret_pass
     ports:
@@ -21,7 +21,7 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ayush_admin -d sentiment_db"]
+      test: ["CMD-SHELL", "pg_isready -U ayush_admin -d traccia_db"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,11 +30,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: sentimentpulse-fastapi
+    container_name: traccia-fastapi
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://ayush_admin:secret_pass@postgres-db:5432/sentiment_db
+      - DATABASE_URL=postgresql://ayush_admin:secret_pass@postgres-db:5432/traccia_db
       - TWITTER_BEARER_TOKEN=\${TWITTER_BEARER_TOKEN}
       - GEMINI_API_KEY=\${GEMINI_API_KEY}
     depends_on:
@@ -43,7 +43,7 @@ services:
 
   n8n-automation:
     image: n8nio/n8n:latest
-    container_name: sentimentpulse-n8n
+    container_name: traccia-n8n
     ports:
       - "5678:5678"
     environment:
@@ -54,7 +54,7 @@ services:
 volumes:
   pgdata:`;
 
-  const dbSchemaSql = `-- SentimentPulse AI PostgreSQL Schema
+  const dbSchemaSql = `-- Traccia AI PostgreSQL Schema
 CREATE TABLE IF NOT EXISTS tweets (
     id VARCHAR(64) PRIMARY KEY,
     author VARCHAR(64) NOT NULL,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS users (
           </div>
           <div>
             <h2 className="text-lg font-extrabold text-slate-950 font-['Outfit']">
-              Self-Hosted Docker Architecture & SQL Database Spec
+              Traccia AI Docker & SQL Infrastructure Architecture
             </h2>
             <p className="text-xs text-slate-500 font-medium">
               Complete production container setup for running PostgreSQL 15, FastAPI sentiment server, and n8n automation natively or via Docker Compose.

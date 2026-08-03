@@ -17,13 +17,13 @@ export const AboutUsSection: React.FC = () => {
         <div className="relative z-10 max-w-3xl">
           <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-slate-100 text-slate-900 border border-slate-200 text-xs font-black mb-4">
             <Users className="w-3.5 h-3.5" />
-            <span>About SentimentPulse AI</span>
+            <span>About Traccia AI</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-['Outfit'] text-slate-950 mb-4">
             Engineering Real-Time Social Media Crisis Intelligence
           </h1>
           <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
-            SentimentPulse AI was built to solve a critical enterprise challenge: identifying PR crisis anomalies in high-volume social media streams <span className="text-slate-950 font-black underline decoration-indigo-500">before</span> they escalate into brand reputational disasters.
+            Traccia AI was built to solve a critical enterprise challenge: identifying PR crisis anomalies in high-volume social media streams <span className="text-slate-950 font-black underline decoration-indigo-500">before</span> they escalate into brand reputational disasters.
           </p>
         </div>
       </div>

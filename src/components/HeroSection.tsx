@@ -45,7 +45,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="inline-flex items-center space-x-2.5 mb-8 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
           <Activity className="w-4 h-4 text-indigo-600 animate-pulse" />
           <span className="text-sm font-black tracking-tight text-slate-950 font-['Outfit']">
-            SentimentPulse<span className="font-bold text-indigo-600">.AI</span> Platform
+            Traccia<span className="font-bold text-indigo-600">.AI</span> Platform
           </span>
         </div>
 

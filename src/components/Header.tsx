@@ -47,8 +47,8 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <div>
             <div className="flex items-baseline space-x-2">
-              <span className="text-xl font-black tracking-tight text-slate-950 font-['Outfit']">
-                SentimentPulse<span className="text-indigo-600">.AI</span>
+              <span className="text-2xl font-black tracking-tight text-slate-950 font-['Outfit']">
+                Traccia<span className="text-indigo-600">.AI</span>
               </span>
               <span className="text-[10px] font-black uppercase text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 hidden sm:inline-block">
                 NLP Engine
