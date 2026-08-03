@@ -1,0 +1,10 @@
+*.py
+requirements.txt
+src/*.py
+src/db/
+database/
+docker/
+docker-compose.yml
+n8n-workflows/
+tests/
+scripts/
