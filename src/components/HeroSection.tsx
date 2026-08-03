@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  ArrowRight,
-  ShieldAlert,
-  Zap,
-  Activity,
-  Workflow,
-  CheckCircle,
-  Terminal,
-  Cpu,
-} from "lucide-react";
+import { ArrowRight, ShieldAlert, Zap, Activity, Workflow, CheckCircle, Terminal, Cpu } from "lucide-react";
 import { StreamStats } from "../types";
 
 interface HeroSectionProps {
@@ -18,195 +9,155 @@ interface HeroSectionProps {
   isTriggeringSpike: boolean;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({
-  stats,
-  onNavigateTab,
-}) => {
+const S: Record<string, React.CSSProperties> = {
+  section: { padding: "80px 0 48px" },
+  badge: {
+    display: "inline-flex", alignItems: "center", gap: 8,
+    padding: "4px 14px", borderRadius: 9999,
+    border: "1px solid #e8eaed", background: "#f8f9fa",
+    fontFamily: "Google Sans, sans-serif", fontSize: "0.75rem", fontWeight: 700,
+    color: "#5f6368", letterSpacing: "0.02em", marginBottom: 28,
+  },
+  h1: {
+    fontFamily: "Google Sans Display, Google Sans, sans-serif",
+    fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
+    fontWeight: 700, letterSpacing: "-0.03em",
+    color: "#202124", lineHeight: 1.05,
+    maxWidth: 780, margin: "0 auto 24px",
+  },
+  subtitle: {
+    fontFamily: "Google Sans, sans-serif",
+    fontSize: "1.0625rem", color: "#5f6368", fontWeight: 400,
+    maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6,
+  },
+  actions: { display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 72 },
+  metricsGrid: {
+    display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1,
+    borderTop: "1px solid #e8eaed", paddingTop: 40,
+  },
+  metricCell: { padding: "20px 0", textAlign: "left" as const },
+  metricLabel: { fontFamily: "Google Sans, sans-serif", fontSize: "0.75rem", fontWeight: 500, color: "#9aa0a6", marginBottom: 6, textTransform: "uppercase" as const, letterSpacing: "0.06em" },
+  metricValue: { fontFamily: "Google Sans Mono, monospace", fontSize: "1.875rem", fontWeight: 700, color: "#202124", lineHeight: 1 },
+  metricSub: { fontFamily: "Google Sans, sans-serif", fontSize: "0.7rem", color: "#34a853", fontWeight: 600, marginTop: 4 },
+
+  featuresSection: { marginTop: 80 },
+  featuresHeader: { marginBottom: 40, textAlign: "center" as const },
+  featureGrid: { display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, border: "1px solid #e8eaed", borderRadius: 16, overflow: "hidden" },
+  featureCard: {
+    padding: "32px 28px", background: "#fff",
+    borderRight: "1px solid #e8eaed",
+    cursor: "pointer", transition: "background 0.15s ease",
+  },
+  featureIcon: {
+    width: 40, height: 40, borderRadius: 10,
+    background: "#f1f3f4", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16,
+  },
+  featureTitle: { fontFamily: "Google Sans, sans-serif", fontWeight: 700, fontSize: "0.9375rem", color: "#202124", marginBottom: 8 },
+  featureDesc: { fontFamily: "Google Sans, sans-serif", fontSize: "0.8125rem", color: "#5f6368", lineHeight: 1.6, marginBottom: 16 },
+  featureLink: { display: "flex", alignItems: "center", gap: 4, fontFamily: "Google Sans, sans-serif", fontSize: "0.8125rem", fontWeight: 700, color: "#202124" },
+};
+
+export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }) => {
   return (
-    <div className="space-y-12 mb-16">
-      {/* Main Hero Banner with Google Antigravity Particle Arch */}
-      <div className="relative overflow-hidden rounded-3xl bg-white p-8 sm:p-20 text-center border border-slate-200/90 shadow-xl">
-        {/* Google Antigravity Particle Arch Sprinkles Array */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-72 pointer-events-none overflow-hidden opacity-95 z-0">
-          <div className="absolute top-4 left-1/4 w-4 h-1.5 bg-[#EA4335] rounded-full rotate-45 animate-dash-1" />
-          <div className="absolute top-8 left-1/3 w-3 h-1.5 bg-[#4285F4] rounded-full -rotate-12 animate-dash-2" />
-          <div className="absolute top-12 left-1/2 -translate-x-12 w-4 h-1.5 bg-[#FBBC05] rounded-full rotate-12 animate-dash-3" />
-          <div className="absolute top-6 right-1/3 w-4 h-1.5 bg-[#34A853] rounded-full -rotate-45 animate-dash-1" />
-          <div className="absolute top-10 right-1/4 w-3 h-1.5 bg-[#A142F4] rounded-full rotate-30 animate-dash-2" />
-          
-          <div className="absolute top-16 left-1/6 w-2.5 h-2.5 bg-[#4285F4] rounded-full animate-dash-3" />
-          <div className="absolute top-20 left-2/5 w-2 h-2 bg-[#EA4335] rounded-full animate-dash-1" />
-          <div className="absolute top-14 right-2/5 w-2.5 h-2.5 bg-[#34A853] rounded-full animate-dash-2" />
-          <div className="absolute top-22 right-1/6 w-2 h-2 bg-[#FBBC05] rounded-full animate-dash-3" />
-          <div className="absolute top-2 left-1/2 w-2.5 h-2.5 bg-[#A142F4] rounded-full animate-dash-1" />
+    <div style={{ textAlign: "center" }}>
+      {/* Hero */}
+      <div style={S.section} className="bg-dot-grid">
+        <div style={S.badge}>
+          <span className="live-dot" />
+          Real-Time Social Intelligence · Traccia
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto pt-4">
-          {/* Traccia Branding Badge */}
-          <div className="inline-flex items-center space-x-2.5 mb-8 bg-slate-50 px-4.5 py-1.5 rounded-full border border-slate-200 shadow-sm">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />
-            <span className="text-xs font-black tracking-tight text-slate-950 font-['Outfit']">
-              Traccia — Real-Time Social Intelligence Engine
-            </span>
+        <h1 style={S.h1}>
+          Monitor sentiment.<br />
+          Detect crises early.
+        </h1>
+
+        <p style={S.subtitle}>
+          Traccia ingests live social streams, runs DistilBERT SST-2 inference,
+          and fires statistical Z-Score anomaly alerts before PR crises escalate.
+        </p>
+
+        <div style={S.actions}>
+          <button className="btn-primary" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("dashboard")}>
+            <Terminal size={15} />
+            Open Dashboard
+            <ArrowRight size={15} />
+          </button>
+          <button className="btn-secondary" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("sandbox")}>
+            <Cpu size={15} />
+            NLP Sandbox
+          </button>
+        </div>
+
+        {/* Metrics */}
+        <div style={S.metricsGrid}>
+          <div style={S.metricCell}>
+            <div style={S.metricLabel}>Brand Health</div>
+            <div style={S.metricValue}>{stats.currentScore}<span style={{ fontSize: "1rem" }}>/100</span></div>
+            <div style={S.metricSub}>↑ Live aggregated</div>
           </div>
-
-          {/* Main Headline */}
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-slate-950 leading-[1.05] mb-8 font-['Outfit']">
-            Experience liftoff with Traccia social sentiment intelligence
-          </h1>
-
-          {/* Subtitle Description */}
-          <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
-            Traccia continuously monitors live social media comment streams, executing fine-grained DistilBERT SST-2 sentiment inference, sarcasm detection, and statistical Z-Score anomaly alerts (Z ≥ 2.5σ).
-          </p>
-
-          {/* Hero Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
-            <button
-              onClick={() => onNavigateTab("dashboard")}
-              className="pulse-pill-primary flex items-center space-x-2 shadow-lg"
-            >
-              <Terminal className="w-4 h-4 text-slate-300" />
-              <span>Launch Live Dashboard</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
-
-            <button
-              onClick={() => onNavigateTab("sandbox")}
-              className="pulse-pill-secondary flex items-center space-x-2"
-            >
-              <Cpu className="w-4 h-4 text-slate-700" />
-              <span>Test NLP Sandbox</span>
-            </button>
+          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
+            <div style={S.metricLabel}>Z-Score Anomaly</div>
+            <div style={S.metricValue}>{stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}<span style={{ fontSize: "1rem" }}>σ</span></div>
+            <div style={{ ...S.metricSub, color: "#9aa0a6" }}>Threshold ≥ 2.5σ</div>
           </div>
-
-          {/* Live Metrics Row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200/80 pt-8">
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
-                <span>Brand Health Index</span>
-                <Activity className="w-3.5 h-3.5 text-indigo-600" />
-              </div>
-              <div className="text-3xl font-black text-slate-950 font-mono-code">
-                {stats.currentScore}/100
-              </div>
-              <div className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center">
-                <CheckCircle className="w-3 h-3 mr-1" /> Real-time DB aggregated
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
-                <span>Z-Score Anomaly</span>
-                <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-              </div>
-              <div className="text-3xl font-black text-slate-950 font-mono-code">
-                {stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}σ
-              </div>
-              <div className="text-[11px] text-slate-600 font-bold mt-1">
-                Threshold: Z ≥ 2.5σ
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
-                <span>Ingestion Velocity</span>
-                <Zap className="w-3.5 h-3.5 text-cyan-600" />
-              </div>
-              <div className="text-3xl font-black text-slate-950 font-mono-code">
-                {stats.tweetsPerMin} <span className="text-xs font-bold">tpm</span>
-              </div>
-              <div className="text-[11px] text-cyan-700 font-bold mt-1">
-                Tweepy v2 Stream Active
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
-                <span>Total Social Posts</span>
-                <Workflow className="w-3.5 h-3.5 text-purple-600" />
-              </div>
-              <div className="text-3xl font-black text-slate-950 font-mono-code">
-                {stats.totalAnalyzed.toLocaleString()}
-              </div>
-              <div className="text-[11px] text-indigo-700 font-bold mt-1">
-                Indexed in PostgreSQL
-              </div>
-            </div>
+          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
+            <div style={S.metricLabel}>Ingestion Rate</div>
+            <div style={S.metricValue}>{stats.tweetsPerMin}<span style={{ fontSize: "1rem" }}>tpm</span></div>
+            <div style={{ ...S.metricSub, color: "#1a73e8" }}>Tweepy v2 Stream</div>
+          </div>
+          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
+            <div style={S.metricLabel}>Posts Analyzed</div>
+            <div style={S.metricValue}>{stats.totalAnalyzed.toLocaleString()}</div>
+            <div style={{ ...S.metricSub, color: "#9334ea" }}>PostgreSQL indexed</div>
           </div>
         </div>
       </div>
 
-      {/* Traccia Core Platform Features Grid */}
-      <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 shadow-md">
-        <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-black text-slate-950 uppercase tracking-wider mb-2 block font-mono-code">
-            Platform Capabilities
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-950 font-['Outfit'] tracking-tight">
-            Built for Enterprise Social Intelligence & PR Protection
+      {/* Feature Grid */}
+      <div style={S.featuresSection}>
+        <div style={S.featuresHeader}>
+          <p style={{ fontFamily: "Google Sans, sans-serif", fontSize: "0.75rem", fontWeight: 700, color: "#9aa0a6", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Platform Capabilities</p>
+          <h2 style={{ fontFamily: "Google Sans Display, sans-serif", fontSize: "1.875rem", fontWeight: 700, color: "#202124", letterSpacing: "-0.02em", maxWidth: 480, margin: "0 auto" }}>
+            Enterprise social intelligence, built to scale
           </h2>
-          <p className="text-sm text-slate-600 mt-2 font-medium">
-            Explore the core architectural components powering Traccia’s real-time monitoring engine.
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Feature 1 */}
+        <div style={S.featureGrid}>
           <div
+            style={S.featureCard}
             onClick={() => onNavigateTab("sandbox")}
-            className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
+            onMouseOver={e => (e.currentTarget.style.background = "#f8f9fa")}
+            onMouseOut={e => (e.currentTarget.style.background = "#fff")}
           >
-            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
-              <Cpu className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
-              Fine-Grained DistilBERT NLP
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
-              Executes local SST-2 sentiment pipelines, sarcasm heuristics, and dslim NER token extraction with model caching for sub-100ms SLAs.
-            </p>
-            <span className="text-xs font-black text-slate-950 flex items-center">
-              Test in NLP Sandbox <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </span>
+            <div style={S.featureIcon}><Cpu size={18} color="#202124" /></div>
+            <div style={S.featureTitle}>DistilBERT NLP Inference</div>
+            <p style={S.featureDesc}>Local SST-2 sentiment pipelines, sarcasm heuristics, and dslim NER token extraction with model caching for sub-100ms SLAs.</p>
+            <div style={S.featureLink}>Open Sandbox <ArrowRight size={13} /></div>
           </div>
 
-          {/* Feature 2 */}
           <div
+            style={S.featureCard}
             onClick={() => onNavigateTab("dashboard")}
-            className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
+            onMouseOver={e => (e.currentTarget.style.background = "#f8f9fa")}
+            onMouseOut={e => (e.currentTarget.style.background = "#fff")}
           >
-            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
-              Z-Score Statistical Anomaly Math
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
-              Automatically evaluates negative comment volume spikes against rolling 24-hour baselines using Z = (X - μ) / σ (Z ≥ 2.5σ trigger).
-            </p>
-            <span className="text-xs font-black text-slate-950 flex items-center">
-              View Crisis Alerts <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </span>
+            <div style={S.featureIcon}><ShieldAlert size={18} color="#202124" /></div>
+            <div style={S.featureTitle}>Z-Score Anomaly Detection</div>
+            <p style={S.featureDesc}>Evaluates negative comment volume spikes against rolling 24h baselines using Z = (X − μ) / σ with Z ≥ 2.5σ auto-trigger.</p>
+            <div style={S.featureLink}>View Crisis Alerts <ArrowRight size={13} /></div>
           </div>
 
-          {/* Feature 3 */}
           <div
+            style={{ ...S.featureCard, borderRight: "none" }}
             onClick={() => onNavigateTab("n8n")}
-            className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
+            onMouseOver={e => (e.currentTarget.style.background = "#f8f9fa")}
+            onMouseOut={e => (e.currentTarget.style.background = "#fff")}
           >
-            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
-              <Workflow className="w-6 h-6" />
-            </div>
-            <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
-              n8n Automated Webhook Escalation
-            </h3>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
-              Master n8n workflow polls the sentiment engine every 30s, dispatches Slack notifications to #eng-alerts, and logs incidents in PostgreSQL.
-            </p>
-            <span className="text-xs font-black text-slate-950 flex items-center">
-              Inspect n8n Workflows <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </span>
+            <div style={S.featureIcon}><Workflow size={18} color="#202124" /></div>
+            <div style={S.featureTitle}>n8n Workflow Escalation</div>
+            <p style={S.featureDesc}>30s cron monitoring loop dispatches Slack notifications to #eng-alerts and logs incidents to PostgreSQL automatically.</p>
+            <div style={S.featureLink}>Inspect Workflows <ArrowRight size={13} /></div>
           </div>
         </div>
       </div>

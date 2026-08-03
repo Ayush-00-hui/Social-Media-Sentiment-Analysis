@@ -217,20 +217,20 @@ export default function App() {
         {/* Toast Notification */}
         {toast && (
           <div
-            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center space-x-3 transition-all ${
-              toast.type === "alert"
-                ? "bg-rose-600 text-white border-rose-500"
-                : "bg-emerald-600 text-white border-emerald-500"
-            }`}
+            style={{
+            position: "fixed", bottom: 24, right: 24, zIndex: 100,
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "10px 18px", borderRadius: 12,
+            background: toast.type === "alert" ? "#c5221f" : "#137333",
+            color: "#fff",
+            boxShadow: "0 4px 20px rgba(0,0,0,.18)",
+            fontFamily: "Google Sans, sans-serif", fontSize: "0.8125rem", fontWeight: 600,
+          }}
           >
-            {toast.type === "alert" ? (
-              <AlertTriangle className="w-5 h-5 text-amber-200 animate-bounce" />
-            ) : (
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            )}
-            <span className="text-xs font-semibold">{toast.message}</span>
-            <button onClick={() => setToast(null)} className="ml-2 hover:opacity-80">
-              <X className="w-4 h-4" />
+            {toast.type === "alert" ? <AlertTriangle size={15} /> : <CheckCircle2 size={15} />}
+            <span>{toast.message}</span>
+            <button onClick={() => setToast(null)} style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", marginLeft: 4, opacity: 0.8 }}>
+              <X size={14} />
             </button>
           </div>
         )}
@@ -246,7 +246,7 @@ export default function App() {
         />
 
         {/* Main Container */}
-        <main className="max-w-[92rem] mx-auto px-6 sm:px-8 lg:px-12 mt-8 mb-16">
+        <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 96px" }}>
           {activeTab === "overview" && (
             <div>
               <HeroSection
