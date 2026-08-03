@@ -26,7 +26,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isTriggeringSpike, setIsTriggeringSpike] = useState(false);
   const [sandboxInitialText, setSandboxInitialText] = useState<string>("");
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Toast Notification
   const [toast, setToast] = useState<{ message: string; type: "success" | "alert" } | null>(null);
@@ -45,8 +45,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    // Default to dark mode
-    document.documentElement.classList.add("dark");
+    // Default to clean Light Mode
+    document.documentElement.classList.remove("dark");
   }, []);
 
   // Core Data States
@@ -217,13 +217,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden transition-colors duration-300">
-      {/* Google Antigravity Ambient Background Canvas */}
+    <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden transition-colors duration-300">
+      {/* Google Antigravity Light Ambient Background Canvas */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-[128px] animate-orb-1" />
-        <div className="absolute top-1/3 -right-32 w-[36rem] h-[36rem] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[128px] animate-orb-2" />
-        <div className="absolute -bottom-32 left-1/3 w-[40rem] h-[40rem] bg-violet-500/10 dark:bg-violet-600/10 rounded-full blur-[128px] animate-orb-3" />
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-20 animate-grid" />
+        <div className="absolute -top-32 -left-32 w-[36rem] h-[36rem] bg-indigo-200/40 dark:bg-cyan-600/15 rounded-full blur-[140px] animate-orb-light-1" />
+        <div className="absolute top-1/3 -right-32 w-[40rem] h-[40rem] bg-cyan-200/35 dark:bg-indigo-600/15 rounded-full blur-[140px] animate-orb-light-2" />
+        <div className="absolute -bottom-32 left-1/3 w-[42rem] h-[42rem] bg-violet-200/30 dark:bg-violet-600/10 rounded-full blur-[140px]" />
+        <div className="absolute inset-0 bg-grid-dots opacity-40 dark:opacity-20" />
       </div>
 
       {/* Main Relative Layer */}

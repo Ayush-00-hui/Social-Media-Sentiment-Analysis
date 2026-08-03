@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleDarkMode,
 }) => {
   return (
-    <header className="glass-nav sticky top-0 z-50 shadow-2xl backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 transition-colors">
+    <header className="glass-nav-light dark:glass-nav bg-white/85 dark:bg-slate-950/85 sticky top-0 z-50 shadow-sm dark:shadow-2xl backdrop-blur-2xl border-b border-slate-200/80 dark:border-white/10 transition-colors">
       {/* Top Banner Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Title */}
