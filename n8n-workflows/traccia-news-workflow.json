@@ -61,19 +61,6 @@
     },
     {
       "parameters": {
-        "channel": "#eng-alerts",
-        "text": "\u26a0\ufe0f Traccia backend unreachable during scheduled poll. Check FastAPI service and ngrok tunnel."
-      },
-      "name": "A3a. Alert Engineering - Backend Down",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [
-        820,
-        380
-      ]
-    },
-    {
-      "parameters": {
         "operation": "executeQuery",
         "query": "INSERT INTO sentiment_history_log (timestamp, z_score, negative_pct, crisis_level) VALUES (NOW(), {{$json.stats.zScore}}, {{$json.stats.negativePct}}, '{{$json.stats.activeCrisisLevel}}');"
       },
@@ -118,20 +105,6 @@
     },
     {
       "parameters": {
-        "channel": "#crisis-room",
-        "text": "\ud83d\udfe1 Traccia \u2014 Elevated sentiment (MEDIUM)\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nWorth a look, no action required yet.\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
-      },
-      "name": "B1. Slack - Medium Notice",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [
-        1280,
-        20
-      ],
-      "notes": "PART B start. Quiet tone for the lowest alert tier."
-    },
-    {
-      "parameters": {
         "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/crisis_alerts",
         "options": {
           "timeout": 5000
@@ -143,19 +116,6 @@
       "position": [
         1280,
         140
-      ]
-    },
-    {
-      "parameters": {
-        "channel": "#crisis-room",
-        "text": "\ud83d\udfe0 Traccia \u2014 HIGH severity crisis\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nTopics: {{$json.alerts[0].affectedTopics.join(', ')}}\nSuggested action: {{$json.alerts[0].suggestedActions[0]}}\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
-      },
-      "name": "B3. Slack - High Alert",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [
-        1520,
-        100
       ]
     },
     {
@@ -186,19 +146,6 @@
       "position": [
         1280,
         260
-      ]
-    },
-    {
-      "parameters": {
-        "channel": "#crisis-room",
-        "text": "\ud83d\udd34 URGENT \u2014 Traccia CRITICAL crisis\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nTopics: {{$json.alerts[0].affectedTopics.join(', ')}}\nSuggested action: {{$json.alerts[0].suggestedActions[0]}}\n@channel please acknowledge.\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
-      },
-      "name": "B6. Slack - Critical Urgent",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [
-        1520,
-        300
       ]
     },
     {
@@ -243,20 +190,6 @@
         1520,
         480
       ]
-    },
-    {
-      "parameters": {
-        "channel": "#crisis-room",
-        "text": "\u2705 Traccia \u2014 sentiment back to normal, previous crisis marked resolved."
-      },
-      "name": "C3. Slack - Crisis Resolved",
-      "type": "n8n-nodes-base.slack",
-      "typeVersion": 1,
-      "position": [
-        1760,
-        480
-      ],
-      "notes": "PART C end."
     },
     {
       "parameters": {
@@ -508,13 +441,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "A3a. Alert Engineering - Backend Down",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "A4. Save Trend Point To Database": {
@@ -530,13 +457,7 @@
     },
     "A5. Decide Severity Level": {
       "main": [
-        [
-          {
-            "node": "B1. Slack - Medium Notice",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "B2. Get Crisis Details (High)",
@@ -564,11 +485,6 @@
       "main": [
         [
           {
-            "node": "B3. Slack - High Alert",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "B4. Email - High Alert",
             "type": "main",
             "index": 0
@@ -579,11 +495,6 @@
     "B5. Get Crisis Details (Critical)": {
       "main": [
         [
-          {
-            "node": "B6. Slack - Critical Urgent",
-            "type": "main",
-            "index": 0
-          },
           {
             "node": "B7. Email - Critical Urgent",
             "type": "main",
@@ -605,13 +516,7 @@
     },
     "C2. Mark Crisis Resolved": {
       "main": [
-        [
-          {
-            "node": "C3. Slack - Crisis Resolved",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "D1. Timer - Daily 9AM": {
