@@ -1,6 +1,9 @@
 import React from "react";
 import {
+  Activity,
   AlertTriangle,
+  Play,
+  Pause,
   Radio,
   RefreshCw,
   Download,
@@ -27,29 +30,24 @@ export const Header: React.FC<HeaderProps> = ({
   isTriggeringSpike,
 }) => {
   return (
-    <header className="glass-nav-antigravity sticky top-0 z-50 transition-colors">
+    <header className="glass-nav-pulse sticky top-0 z-50 transition-colors bg-white/90 backdrop-blur-2xl border-b border-slate-200">
       {/* Main Top Header Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Left: Google Antigravity Brand Logo */}
+        {/* Left: SentimentPulse.AI Brand Logo */}
         <div
           onClick={() => setActiveTab("overview")}
           className="flex items-center space-x-2.5 cursor-pointer group"
         >
-          {/* Colorful Google Triangle 'A' Icon */}
-          <div className="relative w-6 h-6 flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-6 h-6">
-              <path d="M12 2L2 22h20L12 2z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" className="text-slate-950" />
-              <path d="M12 2L6 14h12L12 2z" fill="#4285F4" />
-              <circle cx="12" cy="18" r="2" fill="#EA4335" />
-            </svg>
+          <div className="p-2 bg-gradient-to-tr from-cyan-500 via-indigo-600 to-purple-600 rounded-xl shadow-md shadow-indigo-500/20 border border-white/40 group-hover:scale-105 transition-transform">
+            <Activity className="w-5 h-5 text-white animate-pulse" />
           </div>
 
           <div className="flex items-baseline space-x-2">
-            <span className="text-base font-extrabold tracking-tight text-slate-950 font-['Outfit']">
-              Google <span className="font-bold text-slate-800">Antigravity</span>
+            <span className="text-lg font-black tracking-tight text-slate-950 font-['Outfit']">
+              SentimentPulse<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-indigo-600">.AI</span>
             </span>
             <span className="text-xs font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 hidden sm:inline-block">
-              SentimentPulse.AI
+              NLP Engine
             </span>
           </div>
         </div>
@@ -153,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Top Right Black Pill Download CTA Button */}
           <button
             onClick={() => setActiveTab("infra")}
-            className="antigravity-pill-primary text-xs flex items-center space-x-1.5 py-2 px-4 shadow-sm font-extrabold"
+            className="bg-slate-950 hover:bg-slate-800 text-white rounded-full text-xs flex items-center space-x-1.5 py-2 px-4 shadow-sm font-extrabold transition-all"
           >
             <span>Download</span>
             <Download className="w-3.5 h-3.5 ml-0.5" />

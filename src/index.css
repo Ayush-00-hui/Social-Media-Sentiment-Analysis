@@ -21,7 +21,7 @@
   }
 }
 
-/* Google Antigravity Particle Dash Animation Keyframes */
+/* Particle Dash Animation Keyframes */
 @keyframes dash-float-1 {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-14px) rotate(12deg); }
@@ -41,8 +41,8 @@
 .animate-dash-2 { animation: dash-float-2 7s ease-in-out infinite; }
 .animate-dash-3 { animation: dash-float-3 6s ease-in-out infinite; }
 
-/* Bold Google Pill Button & Glass Utilities */
-.antigravity-pill-primary {
+/* Bold Pill Button & Glass Utilities */
+.pulse-pill-primary {
   background-color: #020617;
   color: #ffffff;
   border-radius: 9999px;
@@ -54,13 +54,13 @@
   box-shadow: 0 4px 16px 0 rgba(2, 6, 23, 0.2);
 }
 
-.antigravity-pill-primary:hover {
+.pulse-pill-primary:hover {
   background-color: #0f172a;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px 0 rgba(2, 6, 23, 0.3);
 }
 
-.antigravity-pill-secondary {
+.pulse-pill-secondary {
   background-color: #f1f5f9;
   color: #0f172a;
   border-radius: 9999px;
@@ -72,20 +72,20 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.antigravity-pill-secondary:hover {
+.pulse-pill-secondary:hover {
   background-color: #e2e8f0;
   color: #020617;
   transform: translateY(-2px);
 }
 
-.glass-nav-antigravity {
+.glass-nav-pulse {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1.5px solid rgba(226, 232, 240, 0.9);
 }
 
-.glass-card-antigravity {
+.glass-card-pulse {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 1.75rem;
@@ -93,7 +93,7 @@
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-card-antigravity:hover {
+.glass-card-pulse:hover {
   border-color: #cbd5e1;
   box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.09);
 }

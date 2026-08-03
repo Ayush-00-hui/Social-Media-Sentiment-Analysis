@@ -1,287 +1,170 @@
 import React, { useState } from "react";
-import { Server, FileCode, Database, Terminal, Shield, BookOpen, ChevronRight, Copy, Check } from "lucide-react";
+import { Server, Database, Code, CheckCircle, Terminal, Copy } from "lucide-react";
 
 export const SelfHostedInfraViewer: React.FC = () => {
-  const [activeFile, setActiveFile] = useState<string>("sentiment_analyzer.py");
-  const [copiedFile, setCopiedFile] = useState(false);
+  const [activeTab, setActiveTab] = useState<"docker" | "schema" | "endpoints">("docker");
+  const [copied, setCopied] = useState(false);
 
-  const codeFiles: Record<string, { path: string; language: string; content: string }> = {
-    "sentiment_analyzer.py": {
-      path: "/src/sentiment_analyzer.py",
-      language: "python",
-      content: `"""
-Social Media Sentiment & Emotion Analysis Engine
-Models: DistilBERT + Gemini 3.6 Flash Fallback Inference Pipeline
-"""
-import os
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-
-class SentimentAnalyzer:
-    def __init__(self, model_name="distilbert-base-uncased-finetuned-sst-2-english"):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"Loading BERT NLP tokenizer & model on {self.device}...")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_name).to(self.device)
-
-    def analyze(self, text: str) -> dict:
-        """Infers sentiment label (POSITIVE, NEGATIVE, NEUTRAL) and emotion probabilities."""
-        inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=128).to(self.device)
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-            probs = torch.softmax(outputs.logits, dim=-1)[0]
-
-        neg_prob, pos_prob = probs[0].item(), probs[1].item()
-        sentiment = "POSITIVE" if pos_prob > 0.6 else "NEGATIVE" if neg_prob > 0.6 else "NEUTRAL"
-
-        # Detect Sarcasm heuristics (Contrastive keyphrases)
-        sarcasm_detected = "/s" in text.lower() or ("great" in text.lower() and "broke" in text.lower())
-
-        return {
-            "sentiment": sentiment,
-            "confidence": round(max(pos_prob, neg_prob) * 100, 2),
-            "sarcasm_detected": sarcasm_detected,
-            "emotions": {
-                "frustration": round(neg_prob * 90, 1),
-                "happiness": round(pos_prob * 95, 1)
-            }
-        }
-`,
-    },
-    "crisis_detector.py": {
-      path: "/src/crisis_detector.py",
-      language: "python",
-      content: `"""
-Crisis Anomaly Detection Engine using Z-Score Time-Series Spike Evaluation
-Formula: Z = (x - μ) / σ
-"""
-import numpy as np
-
-class CrisisDetector:
-    def __init__(self, z_threshold=2.5, window_size=24):
-        self.z_threshold = z_threshold
-        self.window_size = window_size
-
-    def evaluate_spike(self, recent_counts: list) -> dict:
-        """Calculates Z-score anomaly on rolling sentiment volume."""
-        if len(recent_counts) < 5:
-            return {"is_crisis": False, "z_score": 0.0, "severity": "LOW"}
-
-        mean = np.mean(recent_counts[:-1])
-        std = np.std(recent_counts[:-1]) + 1e-5
-        current_val = recent_counts[-1]
-
-        z_score = (current_val - mean) / std
-
-        severity = "LOW"
-        if z_score >= 4.0:
-            severity = "CRITICAL"
-        elif z_score >= 2.5:
-            severity = "HIGH"
-        elif z_score >= 1.5:
-            severity = "MEDIUM"
-
-        return {
-            "is_crisis": z_score >= self.z_threshold,
-            "z_score": round(float(z_score), 2),
-            "severity": severity,
-            "current_volume": current_val,
-            "baseline_mean": round(float(mean), 2)
-        }
-`,
-    },
-    "docker-compose.yml": {
-      path: "/docker/docker-compose.yml",
-      language: "yaml",
-      content: `version: "3.8"
+  const dockerComposeYaml = `version: "3.8"
 
 services:
-  fastapi-sentiment-engine:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - GEMINI_API_KEY=\${GEMINI_API_KEY}
-    restart: always
-
   postgres-db:
     image: postgres:15-alpine
-    container_name: sentiment_postgres
+    container_name: sentimentpulse-postgres
     environment:
       POSTGRES_DB: sentiment_db
       POSTGRES_USER: ayush_admin
-      POSTGRES_PASSWORD: \${DB_PASSWORD:-secret_pass}
+      POSTGRES_PASSWORD: secret_pass
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ayush_admin -d sentiment_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi-sentiment-engine:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: sentimentpulse-fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ayush_admin:secret_pass@postgres-db:5432/sentiment_db
+      - TWITTER_BEARER_TOKEN=\${TWITTER_BEARER_TOKEN}
+      - GEMINI_API_KEY=\${GEMINI_API_KEY}
+    depends_on:
+      postgres-db:
+        condition: service_healthy
 
   n8n-automation:
-    image: docker.n8n.io/n8nio/n8n
+    image: n8nio/n8n:latest
+    container_name: sentimentpulse-n8n
     ports:
       - "5678:5678"
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=\${N8N_PASSWORD:-n8n_pass}
-    volumes:
-      - n8n_data:/home/node/.n8n
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
 
 volumes:
-  postgres_data:
-  n8n_data:
-`,
-    },
-    "schema.sql": {
-      path: "/database/schema.sql",
-      language: "sql",
-      content: `-- PostgreSQL Schema for Social Media Sentiment & Crisis Logs
+  pgdata:`;
 
+  const dbSchemaSql = `-- SentimentPulse AI PostgreSQL Schema
 CREATE TABLE IF NOT EXISTS tweets (
     id VARCHAR(64) PRIMARY KEY,
+    author VARCHAR(64) NOT NULL,
+    handle VARCHAR(64) NOT NULL,
     text TEXT NOT NULL,
-    author VARCHAR(100),
-    handle VARCHAR(100),
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    likes INT DEFAULT 0,
-    retweets INT DEFAULT 0,
-    topic VARCHAR(100)
+    topic VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sentiment_scores (
     id SERIAL PRIMARY KEY,
-    tweet_id VARCHAR(64) REFERENCES tweets(id),
-    sentiment VARCHAR(20) NOT NULL, -- POSITIVE, NEUTRAL, NEGATIVE
-    confidence NUMERIC(5,2),
-    frustration_score NUMERIC(5,2),
-    happiness_score NUMERIC(5,2),
+    tweet_id VARCHAR(64) REFERENCES tweets(id) ON DELETE CASCADE,
+    sentiment VARCHAR(16) NOT NULL,
+    confidence NUMERIC(5, 2) NOT NULL,
     sarcasm_detected BOOLEAN DEFAULT FALSE,
-    crisis_score NUMERIC(5,2)
+    crisis_score INT DEFAULT 0,
+    analyzed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS crisis_alerts (
-    id VARCHAR(64) PRIMARY KEY,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    severity VARCHAR(20), -- LOW, MEDIUM, HIGH, CRITICAL
-    title TEXT,
-    root_cause TEXT,
-    z_score NUMERIC(5,2),
-    negative_spike_pct NUMERIC(5,2),
-    status VARCHAR(20) DEFAULT 'ACTIVE'
+    id SERIAL PRIMARY KEY,
+    alert_level VARCHAR(16) NOT NULL,
+    z_score NUMERIC(5, 2) NOT NULL,
+    root_cause TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    affected_topics TEXT[] DEFAULT '{}',
+    suggested_actions TEXT[] DEFAULT '{}',
+    status VARCHAR(16) DEFAULT 'ACTIVE',
+    triggered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
-`,
-    },
-  };
 
-  const currentFile = codeFiles[activeFile] || codeFiles["sentiment_analyzer.py"];
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(128),
+    registered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);`;
 
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(currentFile.content);
-    setCopiedFile(true);
-    setTimeout(() => setCopiedFile(false), 2000);
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div className="space-y-6">
-      {/* File Explorer & Code Viewer */}
-      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-white shadow-xl grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Sidebar Gitea Repo File Tree */}
-        <div className="md:col-span-1 space-y-2">
-          <div className="flex items-center space-x-2 text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-            <Server className="w-4 h-4 text-cyan-400" />
-            <span>Gitea Repo Files</span>
+      {/* Header */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 text-slate-900 shadow-md">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl">
+            <Server className="w-6 h-6 text-indigo-600" />
           </div>
-
-          {Object.keys(codeFiles).map((fileName) => (
-            <button
-              key={fileName}
-              onClick={() => setActiveFile(fileName)}
-              className={`w-full text-left px-3 py-2 rounded-xl text-xs font-mono flex items-center space-x-2 transition-all ${
-                activeFile === fileName
-                  ? "bg-indigo-600 text-white font-bold shadow"
-                  : "bg-slate-950/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800"
-              }`}
-            >
-              <FileCode className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate">{fileName}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Code View Pane */}
-        <div className="md:col-span-3 bg-slate-950 rounded-xl p-4 border border-slate-800 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-              <span className="text-xs font-mono text-cyan-400">
-                {currentFile.path}
-              </span>
-              <button
-                onClick={handleCopyCode}
-                className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center space-x-1"
-              >
-                {copiedFile ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedFile ? "Copied" : "Copy Code"}</span>
-              </button>
-            </div>
-
-            <pre className="font-mono text-xs text-slate-200 overflow-x-auto leading-relaxed h-[260px] scrollbar-thin">
-              {currentFile.content}
-            </pre>
+            <h2 className="text-lg font-extrabold text-slate-950 font-['Outfit']">
+              Self-Hosted Docker Architecture & SQL Database Spec
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Complete production container setup for running PostgreSQL 15, FastAPI sentiment server, and n8n automation natively or via Docker Compose.
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Interview Battle-Prep Section */}
-      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-white shadow-xl">
-        <div className="flex items-center space-x-2 mb-4">
-          <BookOpen className="w-5 h-5 text-indigo-400" />
-          <h3 className="text-base font-bold text-white">
-            Interview Prep & Technical Deep-Dive Guide
-          </h3>
+      {/* Code Viewer Panel */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 text-slate-900 shadow-md grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Sidebar Nav */}
+        <div className="space-y-2">
+          <button
+            onClick={() => setActiveTab("docker")}
+            className={`w-full p-3 rounded-xl text-left text-xs font-black transition-all flex items-center justify-between ${
+              activeTab === "docker"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>docker-compose.yml</span>
+            <Code className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={() => setActiveTab("schema")}
+            className={`w-full p-3 rounded-xl text-left text-xs font-black transition-all flex items-center justify-between ${
+              activeTab === "schema"
+                ? "bg-slate-950 text-white shadow-sm"
+                : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200"
+            }`}
+          >
+            <span>database/schema.sql</span>
+            <Database className="w-4 h-4" />
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-            <h4 className="font-bold text-indigo-400 mb-2">
-              1. 90-Second Elevator Pitch
-            </h4>
-            <p className="text-slate-300 leading-relaxed">
-              "I built a real-time social media sentiment monitoring system that detects PR crises within minutes. It streams Twitter comments, analyzes emotion and sarcasm using DistilBERT & Gemini 3.6 Flash, calculates Z-score anomaly spikes, and triggers automated Slack alerts via self-hosted n8n workflows."
-            </p>
+        {/* Code Content */}
+        <div className="md:col-span-3 bg-slate-950 rounded-xl p-4 border border-slate-800 flex flex-col justify-between">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono-code font-bold text-slate-400">
+              {activeTab === "docker" ? "docker-compose.yml" : "database/schema.sql"}
+            </span>
+            <button
+              onClick={() => copyToClipboard(activeTab === "docker" ? dockerComposeYaml : dbSchemaSql)}
+              className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center space-x-1"
+            >
+              <Copy className="w-3 h-3" />
+              <span>{copied ? "Copied!" : "Copy Spec"}</span>
+            </button>
           </div>
 
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-            <h4 className="font-bold text-indigo-400 mb-2">
-              2. How Sarcasm Detection Works
-            </h4>
-            <p className="text-slate-300 leading-relaxed">
-              "Sarcasm is challenging for standard sentiment models because surface words are positive ('Great job team'). I handle this by looking for contrastive keyphrases (positive praise + failure keywords), engagement ratio anomalies, and Gemini's contextual transformer reasoning."
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-            <h4 className="font-bold text-indigo-400 mb-2">
-              3. Z-Score Anomaly Formula
-            </h4>
-            <p className="text-slate-300 leading-relaxed font-mono">
-              Z = (x_current - μ_baseline) / σ_baseline
-              <br />
-              When Z &gt; 2.5σ (meaning negative tweet volume is 2.5 standard deviations above 24h baseline), the engine automatically triggers a CRITICAL incident alert.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
-            <h4 className="font-bold text-indigo-400 mb-2">
-              4. Self-Hosted Architecture
-            </h4>
-            <p className="text-slate-300 leading-relaxed">
-              "Fully dockerized setup running on home server hardware: FastAPI container for NLP inference, PostgreSQL container for time-series logs, n8n container for automated workflows, and Cloudflare Tunnels for secure remote TLS access."
-            </p>
-          </div>
+          <pre className="font-mono-code text-xs text-slate-200 overflow-x-auto p-3 bg-slate-900 rounded-lg max-h-[360px] scrollbar-thin">
+            {activeTab === "docker" ? dockerComposeYaml : dbSchemaSql}
+          </pre>
         </div>
       </div>
     </div>
