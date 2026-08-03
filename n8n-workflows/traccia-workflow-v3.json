@@ -1,7 +1,7 @@
 {
   "name": "Traccia — Full Automation Pipeline (Monitoring, Digest, Onboarding)",
   "meta": {
-    "description": "PART A (nodes A1-A5): real-time poll every 30s, always logs a trend point, routes by severity. PART B (nodes B1-B7): severity-based alerts (Medium/High/Critical) to Slack/Email. PART C (nodes C1-C3): auto-resolution when a crisis clears. PART D (nodes D1-D5): daily digest at 9am — scrapes 200+ tweets, converts them into a plain-language paragraph summary, and emails it. PART E (nodes E1-E6): client registration, login-setup-link generation, and welcome email."
+    "description": "PART A (nodes A1-A5): real-time poll every 30s, always logs a trend point, routes by severity. PART B (nodes B1-B7): severity-based alerts (Medium/High/Critical) to Slack/Email. PART C (nodes C1-C3): auto-resolution when a crisis clears. PART D (nodes D1-D5): daily digest at 9am — scrapes 200+ news articles, converts them into a plain-language paragraph summary, and emails it. PART E (nodes E1-E6): client registration, login-setup-link generation, and welcome email."
   },
   "nodes": [
     { "parameters": { "rule": { "interval": [{ "field": "seconds", "secondsInterval": 30 }] } },
@@ -69,18 +69,18 @@
       "notes": "PART D start." },
 
     { "parameters": { "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/tweets?limit=200", "options": { "timeout": 10000 } },
-      "name": "D2. Scrape 200+ Tweets", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [380, 680],
-      "notes": "Pulls at least 200 recent tweets for the daily summary (requires /api/tweets to accept a limit query param)." },
+      "name": "D2. Scrape 200+ News Articles", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [380, 680],
+      "notes": "Pulls at least 200 recent news articles for the daily summary (requires /api/tweets to accept a limit query param)." },
 
-    { "parameters": { "jsCode": "const tweets = items[0].json.tweets || items[0].json || [];\nconst total = tweets.length;\nconst pos = tweets.filter(t => t.sentiment === 'POSITIVE').length;\nconst neg = tweets.filter(t => t.sentiment === 'NEGATIVE').length;\nconst neu = total - pos - neg;\nconst sampleNegative = tweets.filter(t => t.sentiment === 'NEGATIVE').slice(0, 3).map(t => `\"${t.text}\"`).join(' ');\nconst paragraph = `Over the last 24 hours, ${total} tweets were analyzed. ${pos} were positive, ${neu} neutral, and ${neg} negative. ${neg > 0 ? 'Recent negative examples include: ' + sampleNegative : 'No significant negative activity was recorded.'}`;\nreturn [{ json: { paragraph, total, pos, neg, neu } }];" },
-      "name": "D3. Convert Tweets To Paragraph Summary", "type": "n8n-nodes-base.code", "typeVersion": 1, "position": [600, 680],
-      "notes": "Basic Code node - turns the raw tweet array into a plain-language paragraph, no external AI call needed." },
+    { "parameters": { "jsCode": "const articles = items[0].json.tweets || items[0].json || [];\nconst total = articles.length;\nconst pos = articles.filter(t => t.sentiment === 'POSITIVE').length;\nconst neg = articles.filter(t => t.sentiment === 'NEGATIVE').length;\nconst neu = total - pos - neg;\nconst sampleNegative = articles.filter(t => t.sentiment === 'NEGATIVE').slice(0, 3).map(t => `\"${t.text}\"`).join(' ');\nconst paragraph = `Over the last 24 hours, ${total} news articles were analyzed. ${pos} were positive, ${neu} neutral, and ${neg} negative. ${neg > 0 ? 'Recent negative examples include: ' + sampleNegative : 'No significant negative activity was recorded.'}`;\nreturn [{ json: { paragraph, total, pos, neg, neu } }];" },
+      "name": "D3. Convert Articles To Paragraph Summary", "type": "n8n-nodes-base.code", "typeVersion": 1, "position": [600, 680],
+      "notes": "Basic Code node - turns the raw article array into a plain-language paragraph, no external AI call needed." },
 
     { "parameters": { "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/sentiment_history", "options": { "timeout": 5000 } },
       "name": "D4. Get 24h Stats History", "type": "n8n-nodes-base.httpRequest", "typeVersion": 1, "position": [820, 680] },
 
     { "parameters": { "fromEmail": "digest@traccia.ai", "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}", "subject": "Traccia — Daily Sentiment Digest",
-        "html": "<h2>Daily Sentiment Summary</h2><p>{{$node[\"D3. Convert Tweets To Paragraph Summary\"].json.paragraph}}</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">View full dashboard</a></p>" },
+        "html": "<h2>Daily Sentiment Summary</h2><p>{{$node[\"D3. Convert Articles To Paragraph Summary\"].json.paragraph}}</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">View full dashboard</a></p>" },
       "name": "D5. Email - Daily Digest", "type": "n8n-nodes-base.emailSend", "typeVersion": 2, "position": [1040, 680],
       "notes": "PART D end. Now reads like a real summary paragraph instead of raw numbers." },
 
@@ -141,9 +141,9 @@
     },
     "C1. Check For Active Crisis": { "main": [[{ "node": "C2. Mark Crisis Resolved", "type": "main", "index": 0 }]] },
     "C2. Mark Crisis Resolved": { "main": [[{ "node": "C3. Slack - Crisis Resolved", "type": "main", "index": 0 }]] },
-    "D1. Timer - Daily 9AM": { "main": [[{ "node": "D2. Scrape 200+ Tweets", "type": "main", "index": 0 }]] },
-    "D2. Scrape 200+ Tweets": { "main": [[{ "node": "D3. Convert Tweets To Paragraph Summary", "type": "main", "index": 0 }]] },
-    "D3. Convert Tweets To Paragraph Summary": { "main": [[{ "node": "D4. Get 24h Stats History", "type": "main", "index": 0 }]] },
+    "D1. Timer - Daily 9AM": { "main": [[{ "node": "D2. Scrape 200+ News Articles", "type": "main", "index": 0 }]] },
+    "D2. Scrape 200+ News Articles": { "main": [[{ "node": "D3. Convert Articles To Paragraph Summary", "type": "main", "index": 0 }]] },
+    "D3. Convert Articles To Paragraph Summary": { "main": [[{ "node": "D4. Get 24h Stats History", "type": "main", "index": 0 }]] },
     "D4. Get 24h Stats History": { "main": [[{ "node": "D5. Email - Daily Digest", "type": "main", "index": 0 }]] },
     "E1. Registration Webhook": { "main": [[{ "node": "E2. Is Email Provided?", "type": "main", "index": 0 }]] },
     "E2. Is Email Provided?": {
