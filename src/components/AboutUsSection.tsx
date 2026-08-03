@@ -61,7 +61,7 @@ export const AboutUsSection: React.FC = () => {
             <span className="block my-2 font-mono text-[11px] bg-slate-100 dark:bg-slate-950 p-2 rounded border border-slate-200 dark:border-slate-800 text-amber-500">
               Z = (Current_Negative_Vol - Mean_24h) / Std_Dev
             </span>
-            Surges with $Z \ge 2.5\sigma$ automatically trigger high-severity crisis alerts.
+            Surges with Z ≥ 2.5σ automatically trigger high-severity crisis alerts.
           </p>
         </div>
 

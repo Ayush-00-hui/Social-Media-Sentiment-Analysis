@@ -26,7 +26,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   isTriggeringSpike,
 }) => {
   return (
-    <div className="relative overflow-hidden mb-10 rounded-3xl bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:from-slate-900/90 dark:via-slate-950/90 dark:to-slate-950 border border-slate-200/80 dark:border-slate-800/80 shadow-2xl p-8 sm:p-12 transition-all">
+    <div className="relative overflow-hidden mb-10 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-xl dark:shadow-2xl p-8 sm:p-12 transition-all">
       {/* Decorative Gradient Glow Backdrops */}
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-indigo-500/20 via-cyan-500/15 to-purple-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-cyan-500/20 via-indigo-500/15 to-blue-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -51,7 +51,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
         {/* Hero Description Subtitle */}
         <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 max-w-3xl mx-auto mb-8 font-normal leading-relaxed">
-          Powered by Hugging Face <span className="font-semibold text-slate-900 dark:text-white">DistilBERT</span> dual NLP inference and automated <span className="font-semibold text-slate-900 dark:text-white">Z-Score anomaly math</span> ($Z \ge 2.5$). Instantly detect sentiment drops, sarcasm spikes, and dispatch incident webhooks to Slack and Email.
+          Powered by Hugging Face <span className="font-semibold text-slate-900 dark:text-white">DistilBERT</span> dual NLP inference and automated <span className="font-semibold text-slate-900 dark:text-white">Z-Score anomaly math</span> (Z ≥ 2.5). Instantly detect sentiment drops, sarcasm spikes, and dispatch incident webhooks to Slack and Email.
         </p>
 
         {/* Action Buttons Row */}
@@ -105,7 +105,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}σ
             </div>
             <div className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mt-1">
-              Threshold: $Z \ge 2.5\sigma$
+              Threshold: Z ≥ 2.5σ
             </div>
           </div>
 
