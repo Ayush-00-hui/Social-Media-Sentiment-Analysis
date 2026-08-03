@@ -44,14 +44,9 @@
 ## 💻 Quick Start (One-Click Local Setup)
 
 ### Option 1: One-Click Windows Batch Setup
-To launch BOTH the FastAPI backend and Vite frontend together in parallel windows:
+To launch the entire Traccia stack (FastAPI backend, ngrok tunnel, n8n orchestrator, and Vite frontend) together:
 ```cmd
-start_all_local.bat
-```
-
-To launch ONLY the backend FastAPI server (`http://localhost:8001`):
-```cmd
-start_backend.bat
+START.bat
 ```
 
 ### Option 2: PowerShell Setup Script
