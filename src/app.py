@@ -1,18 +1,21 @@
 """
 FastAPI Backend Service for Social Media Sentiment & Crisis Monitoring
 Connects REST Endpoints & Webhooks to SQLAlchemy ORM, DistilBERT Sentiment Pipeline, and Background Ingestion Workers.
+Aligned with React Frontend src/types.ts Contract.
 """
 import os
+import time
+import html
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Depends, Query, Request
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from sqlalchemy.orm import Session
 
 from src.db.models import (
-    init_db, get_db, TweetModel, SentimentScoreModel, CrisisAlertModel, HourlyAggregateModel
+    init_db, get_db, TweetModel, SentimentScoreModel, CrisisAlertModel, HourlyAggregateModel, UserModel
 )
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.crisis_detector import CrisisDetector
@@ -22,6 +25,38 @@ from src.logging_config import get_logger, generate_request_id
 logger = get_logger("FastAPIApp")
 analyzer = SentimentAnalyzer()
 crisis_detector = CrisisDetector()
+
+# Global Application State for Demo Controls
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() in ("true", "1")
+app_state = {
+    "is_streaming": True,
+    "is_spike_active": False
+}
+
+# Simple In-Memory IP Rate Limiter (30 requests per minute per IP)
+rate_limit_records: Dict[str, List[float]] = {}
+RATE_LIMIT_WINDOW = 60.0  # seconds
+RATE_LIMIT_MAX_REQUESTS = 30
+
+def check_rate_limit(request: Request):
+    """Enforces rate limiting based on client IP address."""
+    client_ip = request.client.host if request.client else "127.0.0.1"
+    now = time.time()
+    
+    if client_ip not in rate_limit_records:
+        rate_limit_records[client_ip] = []
+        
+    # Keep only timestamps within the sliding window
+    timestamps = [t for t in rate_limit_records[client_ip] if now - t < RATE_LIMIT_WINDOW]
+    
+    if len(timestamps) >= RATE_LIMIT_MAX_REQUESTS:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=f"Rate limit exceeded. Maximum {RATE_LIMIT_MAX_REQUESTS} requests per minute allowed."
+        )
+        
+    timestamps.append(now)
+    rate_limit_records[client_ip] = timestamps
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -56,26 +91,43 @@ async def request_tracing_middleware(request: Request, call_next):
     response.headers["X-Request-ID"] = req_id
     return response
 
-# Schemas
+# Pydantic Schemas matching src/types.ts
 class AnalyzeRequest(BaseModel):
-    text: str = Field(..., min_length=1)
+    text: str = Field(..., min_length=1, max_length=5000)
 
-class SentimentResponse(BaseModel):
+class EmotionScores(BaseModel):
+    happiness: float
+    frustration: float
+    anger: float
+    surprise: float
+    sarcasmProb: float
+
+class EntityMention(BaseModel):
     text: str
-    sentiment: str
+    category: str  # BRAND | COMPETITOR | PRODUCT | PERSON | LOCATION
+
+class AnalysisResult(BaseModel):
+    sentiment: str  # POSITIVE | NEUTRAL | NEGATIVE
     confidence: float
-    sarcasm_detected: bool
-    crisis_score: float
-    emotions: Dict[str, float]
-    entities: List[Dict[str, Any]]
+    emotions: EmotionScores
+    sarcasmDetected: bool
+    crisisScore: float
+    entities: List[EntityMention]
+    summary: str
+    reasoning: str
+    modelUsed: str = "BERT DistilBERT"
 
 class WebhookPayload(BaseModel):
     tweet_id: Optional[str] = None
-    text: str
+    text: str = Field(..., min_length=1, max_length=5000)
     author: Optional[str] = "n8n_user"
     handle: Optional[str] = "@n8n_user"
     likes: Optional[int] = 0
     retweets: Optional[int] = 0
+
+class UserRegisterRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    name: str = Field(..., min_length=1, max_length=100)
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
@@ -91,20 +143,24 @@ def health_check(db: Session = Depends(get_db)):
         "status": "ONLINE",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": db_status,
-        "service": "SentimentPulse AI Engine"
+        "service": "SentimentPulse AI Engine",
+        "demo_mode": DEMO_MODE
     }
 
 @app.get("/")
 def read_root():
     return {
         "status": "ONLINE",
-        "engine": "FastAPI + DistilBERT + Gemini Dual NLP",
+        "engine": "FastAPI + DistilBERT NLP",
         "docs": "/docs"
     }
 
 @app.get("/api/current_sentiment")
 def get_current_sentiment(db: Session = Depends(get_db)):
-    """Fetches live real-time sentiment stats and Brand Health Index from DB."""
+    """
+    Fetches real-time sentiment stats, breakdown, brand comparisons, and top topics.
+    Matches StreamStats & dashboard frontend contract.
+    """
     try:
         total_tweets = db.query(TweetModel).count()
         pos_count = db.query(SentimentScoreModel).filter(SentimentScoreModel.sentiment == "POSITIVE").count()
@@ -116,104 +172,99 @@ def get_current_sentiment(db: Session = Depends(get_db)):
             pos_pct = round((pos_count / total_tweets) * 100, 1)
             neg_pct = round((neg_count / total_tweets) * 100, 1)
             neu_pct = round((neu_count / total_tweets) * 100, 1)
+        elif DEMO_MODE:
+            total_tweets, health_score, pos_pct, neg_pct, neu_pct = 14825, 78, 65.0, 20.0, 15.0
         else:
-            health_score, pos_pct, neg_pct, neu_pct = 78, 65.0, 20.0, 15.0
-            total_tweets = 14825
+            total_tweets, health_score, pos_pct, neg_pct, neu_pct = 0, 100, 0.0, 0.0, 0.0
 
         active_alert = db.query(CrisisAlertModel).filter(CrisisAlertModel.status == "ACTIVE").order_by(CrisisAlertModel.timestamp.desc()).first()
-        z_score = active_alert.z_score if active_alert else 0.45
-        crisis_level = active_alert.severity if active_alert else "LOW"
+        z_score = active_alert.z_score if active_alert else (2.85 if app_state["is_spike_active"] else 0.45)
+        crisis_level = active_alert.severity if active_alert else ("HIGH" if app_state["is_spike_active"] else "LOW")
 
         return {
             "stats": {
                 "totalAnalyzed": total_tweets,
                 "currentScore": health_score,
-                "positivePct": pos_pct,
-                "negativePct": neg_pct,
-                "neutralPct": neu_pct,
-                "avgConfidence": 93.4,
-                "tweetsPerMin": 85,
+                "avgConfidence": 93.4 if total_tweets > 0 or DEMO_MODE else 0.0,
+                "tweetsPerMin": 85 if total_tweets > 0 or DEMO_MODE else 0,
                 "activeCrisisLevel": crisis_level,
                 "zScore": z_score,
-                "isStreaming": True
-            }
+                "isStreaming": app_state["is_streaming"],
+                "isSpikeActive": app_state["is_spike_active"]
+            },
+            "sentimentBreakdown": {
+                "positivePct": pos_pct,
+                "neutralPct": neu_pct,
+                "negativePct": neg_pct
+            },
+            "brandComparisons": [
+                {"brandName": "@TechBrand", "positivePct": pos_pct if total_tweets > 0 else (68.0 if DEMO_MODE else 0.0), "neutralPct": neu_pct if total_tweets > 0 else (17.0 if DEMO_MODE else 0.0), "negativePct": neg_pct if total_tweets > 0 else (15.0 if DEMO_MODE else 0.0), "volume": total_tweets if total_tweets > 0 else (14825 if DEMO_MODE else 0), "netSentimentScore": pos_pct - neg_pct if total_tweets > 0 else (53.0 if DEMO_MODE else 0.0)},
+                {"brandName": "@CompetitorA", "positivePct": 55.0 if DEMO_MODE else 0.0, "neutralPct": 25.0 if DEMO_MODE else 0.0, "negativePct": 20.0 if DEMO_MODE else 0.0, "volume": 9210 if DEMO_MODE else 0, "netSentimentScore": 35.0 if DEMO_MODE else 0.0},
+                {"brandName": "@CompetitorB", "positivePct": 42.0 if DEMO_MODE else 0.0, "neutralPct": 28.0 if DEMO_MODE else 0.0, "negativePct": 30.0 if DEMO_MODE else 0.0, "volume": 6430 if DEMO_MODE else 0, "netSentimentScore": 12.0 if DEMO_MODE else 0.0}
+            ],
+            "topTopics": [
+                {"topic": "API Auth / Login", "volume": 1240 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "NEGATIVE" if app_state["is_spike_active"] or DEMO_MODE else "POSITIVE"},
+                {"topic": "v4.0 Performance", "volume": 3410 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "POSITIVE"},
+                {"topic": "Cloud Migration", "volume": 890 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "NEUTRAL"}
+            ]
         }
     except Exception as e:
-        logger.error(f"Error fetching current sentiment stats: {e}")
+        logger.error(f"Error in /api/current_sentiment: {e}")
         return {
-            "stats": {
-                "totalAnalyzed": 14825,
-                "currentScore": 78,
-                "positivePct": 65.0,
-                "negativePct": 20.0,
-                "neutralPct": 15.0,
-                "avgConfidence": 93.4,
-                "tweetsPerMin": 85,
-                "activeCrisisLevel": "LOW",
-                "zScore": 0.45,
-                "isStreaming": True
-            }
+            "stats": {"totalAnalyzed": 0, "currentScore": 100, "avgConfidence": 0, "tweetsPerMin": 0, "activeCrisisLevel": "LOW", "zScore": 0.0, "isStreaming": app_state["is_streaming"], "isSpikeActive": app_state["is_spike_active"]},
+            "sentimentBreakdown": {"positivePct": 0.0, "neutralPct": 0.0, "negativePct": 0.0},
+            "brandComparisons": [],
+            "topTopics": []
         }
-
-@app.post("/api/manual_analyze", response_model=SentimentResponse)
-def analyze_text(payload: AnalyzeRequest):
-    """Runs DistilBERT NLP inference on input text string."""
-    if not payload.text or not payload.text.strip():
-        raise HTTPException(status_code=400, detail="Text field is required and cannot be empty.")
-
-    res = analyzer.analyze_text(payload.text)
-    return SentimentResponse(
-        text=res["text"],
-        sentiment=res["sentiment"],
-        confidence=res["confidence"],
-        sarcasm_detected=res["sarcasm_detected"],
-        crisis_score=res["crisis_score"],
-        emotions=res["emotions"],
-        entities=res["entities"]
-    )
 
 @app.get("/api/sentiment_history")
 def get_sentiment_history(hours: int = Query(default=24, ge=1, le=168), db: Session = Depends(get_db)):
-    """Retrieves hourly time-series sentiment metrics for the last N hours."""
+    """
+    Returns plain array of SentimentAggregate objects matching src/types.ts interface.
+    """
     try:
         since = datetime.now(timezone.utc) - timedelta(hours=hours)
         records = db.query(HourlyAggregateModel).filter(HourlyAggregateModel.hour_timestamp >= since).order_by(HourlyAggregateModel.hour_timestamp.asc()).all()
 
         history = []
         for r in records:
+            dt = r.hour_timestamp
             history.append({
-                "timestamp": r.hour_timestamp.isoformat(),
+                "timestamp": dt.isoformat(),
+                "hourLabel": dt.strftime("%H:00"),
                 "positivePct": r.positive_pct,
                 "neutralPct": r.neutral_pct,
                 "negativePct": r.negative_pct,
-                "volume": r.tweet_volume,
+                "tweetVolume": r.tweet_volume,
                 "zScore": r.z_score,
-                "isCrisis": r.crisis_flag
+                "crisisFlag": r.crisis_flag
             })
 
-        if not history:
-            # Fallback mock timeline for empty DB state
+        if not history and DEMO_MODE:
             now = datetime.now(timezone.utc)
             for i in range(hours, 0, -1):
-                t = now - timedelta(hours=i)
+                dt = now - timedelta(hours=i)
                 history.append({
-                    "timestamp": t.isoformat(),
+                    "timestamp": dt.isoformat(),
+                    "hourLabel": dt.strftime("%H:00"),
                     "positivePct": 70.0,
                     "neutralPct": 15.0,
                     "negativePct": 15.0,
-                    "volume": 120,
+                    "tweetVolume": 120,
                     "zScore": 0.35,
-                    "isCrisis": False
+                    "crisisFlag": False
                 })
 
-        return {"history": history}
+        return history  # Plain array
     except Exception as e:
-        logger.error(f"Error fetching sentiment history: {e}")
-        return {"history": []}
+        logger.error(f"Error in /api/sentiment_history: {e}")
+        return []
 
 @app.get("/api/crisis_alerts")
 def get_crisis_alerts(db: Session = Depends(get_db)):
-    """Retrieves active and historical crisis anomaly alerts."""
+    """
+    Returns plain array of CrisisAlert objects matching src/types.ts interface.
+    """
     try:
         alerts = db.query(CrisisAlertModel).order_by(CrisisAlertModel.timestamp.desc()).all()
         result = []
@@ -223,41 +274,239 @@ def get_crisis_alerts(db: Session = Depends(get_db)):
                 "timestamp": a.timestamp.isoformat(),
                 "severity": a.severity,
                 "title": a.title,
-                "rootCause": a.root_cause,
-                "zScore": a.z_score,
+                "rootCause": a.root_cause or "Automated anomaly trigger",
+                "summary": f"{a.title} with negative spike at {a.negative_spike_pct}%",
                 "negativeSpikePct": a.negative_spike_pct,
-                "status": a.status
+                "zScore": a.z_score,
+                "affectedTopics": ["API Auth", "Authentication", "SDK Session"],
+                "status": a.status,
+                "suggestedActions": [
+                    "Issue PR statement regarding auth patch rollback",
+                    "Notify engineering team on Slack #eng-alerts",
+                    "Scale backend service replicas"
+                ]
             })
-        return {"alerts": result}
+
+        if not result and (DEMO_MODE or app_state["is_spike_active"]):
+            now = datetime.now(timezone.utc)
+            result.append({
+                "id": "alert-demo-001",
+                "timestamp": now.isoformat(),
+                "severity": "CRITICAL" if app_state["is_spike_active"] else "HIGH",
+                "title": "Spike in Negative Sentiment Detected",
+                "rootCause": "v4.2 Auth patch breaking user session tokens",
+                "summary": "Sudden surge in negative tweets regarding token expiration loop.",
+                "negativeSpikePct": 78.5,
+                "zScore": 3.85,
+                "affectedTopics": ["API Auth", "Login", "OAuth"],
+                "status": "ACTIVE",
+                "suggestedActions": [
+                    "Roll back auth patch v4.2 immediately",
+                    "Post status update on status.techbrand.com",
+                    "Monitor Z-score recovery baseline"
+                ]
+            })
+
+        return result  # Plain array
     except Exception as e:
-        logger.error(f"Error fetching crisis alerts: {e}")
-        return {"alerts": []}
+        logger.error(f"Error in /api/crisis_alerts: {e}")
+        return []
+
+@app.get("/api/tweets")
+def get_tweets(
+    filter: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    limit: int = Query(default=50, ge=1, le=200),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns array of Tweet objects matching src/types.ts Tweet interface.
+    """
+    try:
+        query = db.query(TweetModel)
+        if search:
+            query = query.filter(TweetModel.text.ilike(f"%{search}%"))
+
+        results = query.order_by(TweetModel.timestamp.desc()).limit(limit).all()
+        tweets_list = []
+
+        for t in results:
+            score = t.sentiment_score
+            sentiment_val = score.sentiment if score else "NEUTRAL"
+            
+            if filter and filter.upper() != "ALL":
+                if filter.upper() == "SARCASM" and not (score and score.sarcasm_detected):
+                    continue
+                elif filter.upper() == "CRISIS" and not (score and score.crisis_score > 50):
+                    continue
+                elif filter.upper() in ["POSITIVE", "NEGATIVE", "NEUTRAL"] and sentiment_val != filter.upper():
+                    continue
+
+            tweets_list.append({
+                "id": t.id,
+                "text": t.text,
+                "author": t.author or "Anonymous",
+                "handle": t.handle or "@anon",
+                "avatar": f"https://api.dicebear.com/7.x/bottts/svg?seed={t.author or 'anon'}",
+                "timestamp": t.timestamp.isoformat() if t.timestamp else datetime.now(timezone.utc).isoformat(),
+                "likes": t.likes or 0,
+                "retweets": t.retweets or 0,
+                "sentiment": sentiment_val,
+                "confidence": score.confidence if score else 90.0,
+                "emotions": {
+                    "happiness": score.happiness_score if score else (85.0 if sentiment_val == "POSITIVE" else 5.0),
+                    "frustration": score.frustration_score if score else (85.0 if sentiment_val == "NEGATIVE" else 5.0),
+                    "anger": 75.0 if sentiment_val == "NEGATIVE" else 0.0,
+                    "surprise": 60.0 if score and score.sarcasm_detected else 10.0,
+                    "sarcasmProb": 95.0 if score and score.sarcasm_detected else 5.0
+                },
+                "entities": [{"text": "@TechBrand", "category": "BRAND"}],
+                "sarcasmDetected": score.sarcasm_detected if score else False,
+                "crisisScore": score.crisis_score if score else 10.0,
+                "topic": t.topic or "@TechBrand"
+            })
+
+        if not tweets_list and (DEMO_MODE or not results):
+            # Seed demo tweets if DB is empty
+            tweets_list = [
+                {
+                    "id": "tweet-demo-101",
+                    "text": "Liking the new @TechBrand release! Runs super fast and smooth.",
+                    "author": "Sarah Dev",
+                    "handle": "@sarah_dev",
+                    "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=sarah",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "likes": 42,
+                    "retweets": 8,
+                    "sentiment": "POSITIVE",
+                    "confidence": 96.4,
+                    "emotions": {"happiness": 92.0, "frustration": 4.0, "anger": 0.0, "surprise": 12.0, "sarcasmProb": 2.0},
+                    "entities": [{"text": "@TechBrand", "category": "BRAND"}],
+                    "sarcasmDetected": False,
+                    "crisisScore": 10.0,
+                    "topic": "@TechBrand"
+                },
+                {
+                    "id": "tweet-demo-102",
+                    "text": "Oh great, another patch from @TechBrand that completely broke API auth... /s",
+                    "author": "Alex Tech",
+                    "handle": "@alex_tech",
+                    "avatar": "https://api.dicebear.com/7.x/bottts/svg?seed=alex",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "likes": 89,
+                    "retweets": 34,
+                    "sentiment": "NEGATIVE",
+                    "confidence": 94.5,
+                    "emotions": {"happiness": 0.0, "frustration": 88.0, "anger": 72.0, "surprise": 60.0, "sarcasmProb": 95.0},
+                    "entities": [{"text": "@TechBrand", "category": "BRAND"}],
+                    "sarcasmDetected": True,
+                    "crisisScore": 85.0,
+                    "topic": "API Auth"
+                }
+            ]
+
+        return tweets_list
+    except Exception as e:
+        logger.error(f"Error in /api/tweets: {e}")
+        return []
+
+@app.post("/api/manual_analyze", response_model=AnalysisResult)
+def analyze_text(payload: AnalyzeRequest, request: Request):
+    """
+    Runs DistilBERT NLP inference on input text string.
+    Includes rate limiting and input sanitization. Returns AnalysisResult.
+    """
+    check_rate_limit(request)
+
+    clean_text = html.escape(payload.text.strip())
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Text payload cannot be empty.")
+
+    res = analyzer.analyze_text(clean_text)
+    
+    emotions_dict = res.get("emotions", {})
+    emotions_obj = EmotionScores(
+        happiness=float(emotions_dict.get("happiness", 10.0)),
+        frustration=float(emotions_dict.get("frustration", 10.0)),
+        anger=float(emotions_dict.get("anger", 0.0)),
+        surprise=float(emotions_dict.get("surprise", 5.0)),
+        sarcasmProb=float(emotions_dict.get("sarcasm_prob", 5.0))
+    )
+
+    entities_list = [
+        EntityMention(text=e.get("text", "@TechBrand"), category=e.get("category", "BRAND"))
+        for e in res.get("entities", [])
+    ]
+
+    sentiment_val = res.get("sentiment", "NEUTRAL")
+    sarcasm_flag = res.get("sarcasm_detected", False)
+
+    summary_text = (
+        f"Input analyzed as {sentiment_val} sentiment ({res.get('confidence')}% confidence)."
+        + (" Sarcasm detected via sarcasm heuristic." if sarcasm_flag else "")
+    )
+    reasoning_text = (
+        f"DistilBERT sequence classification evaluated token probabilities. "
+        f"Frustration: {emotions_obj.frustration}%, Happiness: {emotions_obj.happiness}%."
+    )
+
+    return AnalysisResult(
+        sentiment=sentiment_val,
+        confidence=float(res.get("confidence", 90.0)),
+        emotions=emotions_obj,
+        sarcasmDetected=sarcasm_flag,
+        crisisScore=float(res.get("crisis_score", 10.0)),
+        entities=entities_list,
+        summary=summary_text,
+        reasoning=reasoning_text,
+        modelUsed="BERT DistilBERT"
+    )
+
+@app.post("/api/simulate_spike")
+def simulate_spike():
+    """Toggles or activates anomaly spike simulation mode."""
+    app_state["is_spike_active"] = not app_state["is_spike_active"]
+    logger.info(f"Demo Control: is_spike_active set to {app_state['is_spike_active']}")
+    return {
+        "status": "OK",
+        "isSpikeActive": app_state["is_spike_active"]
+    }
+
+@app.post("/api/toggle_stream")
+def toggle_stream():
+    """Toggles background ingestion stream active state."""
+    app_state["is_streaming"] = not app_state["is_streaming"]
+    logger.info(f"Demo Control: is_streaming set to {app_state['is_streaming']}")
+    return {
+        "status": "OK",
+        "isStreaming": app_state["is_streaming"]
+    }
 
 @app.get("/api/competitor_comparison")
 def get_competitor_comparison(db: Session = Depends(get_db)):
     """Compares sentiment scores across primary brand and competitors."""
     return {
         "competitors": [
-            {"name": "@TechBrand", "sentimentScore": 78, "trend": "+2.4%", "volume": 14825, "status": "LEADING"},
-            {"name": "@CompetitorA", "sentimentScore": 62, "trend": "-1.1%", "volume": 9210, "status": "AVERAGE"},
-            {"name": "@CompetitorB", "sentimentScore": 54, "trend": "-3.8%", "volume": 6430, "status": "LAGGING"}
+            {"brandName": "@TechBrand", "positivePct": 68.0, "neutralPct": 17.0, "negativePct": 15.0, "volume": 14825, "netSentimentScore": 53.0},
+            {"brandName": "@CompetitorA", "positivePct": 55.0, "neutralPct": 25.0, "negativePct": 20.0, "volume": 9210, "netSentimentScore": 35.0},
+            {"brandName": "@CompetitorB", "positivePct": 42.0, "neutralPct": 28.0, "negativePct": 30.0, "volume": 6430, "netSentimentScore": 12.0}
         ]
     }
 
 @app.post("/api/webhook/n8n")
-def n8n_webhook(payload: WebhookPayload, db: Session = Depends(get_db)):
+def n8n_webhook(payload: WebhookPayload, request: Request, db: Session = Depends(get_db)):
     """Webhook endpoint accepting tweets from n8n automation workflows."""
-    if not payload.text:
-        raise HTTPException(status_code=400, detail="Tweet text is required")
+    check_rate_limit(request)
 
+    clean_text = html.escape(payload.text.strip())
     t_id = payload.tweet_id or f"n8n-{int(datetime.now(timezone.utc).timestamp())}"
     
-    analysis = analyzer.analyze_text(payload.text)
+    analysis = analyzer.analyze_text(clean_text)
 
     try:
         tweet = TweetModel(
             id=t_id,
-            text=payload.text,
+            text=clean_text,
             author=payload.author,
             handle=payload.handle,
             timestamp=datetime.now(timezone.utc),
@@ -286,6 +535,29 @@ def n8n_webhook(payload: WebhookPayload, db: Session = Depends(get_db)):
         "tweet_id": t_id,
         "analysis": analysis
     }
+
+@app.post("/api/register_user")
+def register_user(payload: UserRegisterRequest, request: Request, db: Session = Depends(get_db)):
+    """Registration endpoint for Section 2 n8n onboarding workflow."""
+    check_rate_limit(request)
+
+    existing = db.query(UserModel).filter(UserModel.email == payload.email).first()
+    if existing:
+        return {"status": "EXISTS", "email": payload.email, "message": "User already registered"}
+
+    try:
+        user = UserModel(
+            email=payload.email,
+            name=payload.name,
+            registered_at=datetime.now(timezone.utc)
+        )
+        db.add(user)
+        db.commit()
+        logger.info(f"Registered new user: {payload.email} ({payload.name})")
+        return {"status": "REGISTERED", "email": payload.email, "name": payload.name}
+    except Exception as e:
+        logger.error(f"Error registering user: {e}")
+        return {"status": "ERROR", "message": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

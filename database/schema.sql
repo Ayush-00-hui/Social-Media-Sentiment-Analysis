@@ -44,3 +44,10 @@ CREATE TABLE IF NOT EXISTS hourly_aggregates (
     z_score NUMERIC(5,2),
     crisis_flag BOOLEAN DEFAULT FALSE
 );
+
+CREATE TABLE IF NOT EXISTS users (
+    email VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    registered_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+

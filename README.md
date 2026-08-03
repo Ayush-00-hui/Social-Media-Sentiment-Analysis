@@ -1,66 +1,86 @@
-# SentimentPulse AI: Social Media Sentiment & PR Crisis Engine
+# SentimentPulse AI: Social Media Sentiment & Crisis Monitoring Engine
 
-Production-grade real-time social media NLP pipeline with DistilBERT + Gemini 3.6 Flash inference, Z-score anomaly crisis detection, self-hosted Docker Compose orchestration, PostgreSQL time-series logging, and automated n8n Slack/Email workflows.
-
----
-
-## 🚀 Key Features
-
-1. **Real-Time Social Media Ingestion**: Stream & filter Twitter/X posts by keywords, hashtags, and brand mentions.
-2. **Fine-Grained Sentiment & Emotion Breakdown**: DistilBERT & Gemini dual-engine classification for positive, neutral, and negative sentiment + sarcasm/irony detection.
-3. **Z-Score Anomaly Crisis Detection**: Evaluates rolling sentiment volume against baseline ($Z = \frac{x - \mu}{\sigma}$). Alerts when negative surge exceeds $2.5\sigma$.
-4. **Self-Hosted Infrastructure**: Fully dockerized setup running FastAPI, Streamlit, PostgreSQL, and n8n Community Edition on local hardware behind Cloudflare Tunnels.
-5. **Automated Incident Workflows**: n8n pipeline triggers instant Slack notifications and drafts AI executive response statements upon crisis detection.
+Production-grade real-time social media NLP pipeline with DistilBERT inference, Z-Score anomaly crisis detection, self-hosted Docker Compose orchestration, PostgreSQL time-series logging, and automated n8n Slack/Email workflows.
 
 ---
 
-## 🛠️ Repository Architecture
+## 🏗️ System Architecture & Endpoints
 
+### Core Service Components
+- **FastAPI Backend Service (`src/app.py`):** Exposes REST API endpoints, rate limiting, and lifespan background workers.
+- **DistilBERT NLP Engine (`src/sentiment_analyzer.py`):** Hugging Face DistilBERT (`distilbert-base-uncased-finetuned-sst-2-english`) and NER (`dslim/distilbert-ner`) pipelines with model caching and fallback heuristics.
+- **Twitter Streaming Collector (`src/twitter_scraper.py`):** Tweepy v2 streaming API collector with keyword filtering, deduplication (`seen_ids`), and exponential backoff retry.
+- **Z-Score Anomaly Detector (`src/crisis_detector.py`):** Time-series anomaly calculation ($Z = \frac{x - \mu}{\sigma}$) triggering alerts when negative volume surge exceeds $2.5\sigma$.
+- **Background Worker Tasks (`src/background_tasks.py`):** Periodic 30s ingestion, sentiment analysis, Z-score evaluation, hourly aggregate calculations, and data retention cleanup.
+- **Streamlit & React Dashboard (`src/dashboard.py`):** Real-time monitoring UI connected to FastAPI backend with 10s auto-refresh.
+- **Master n8n Workflow (`n8n-workflows/social-media-monitoring.json`):** 30s polling anomaly monitoring, Slack/Email alert dispatching, and user registration onboarding pipeline.
+
+---
+
+## 🔌 API Endpoints Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/health` | Healthcheck probe returning API, DB, and service status |
+| `GET` | `/api/current_sentiment` | Real-time stats, Brand Health Index, sentiment breakdown, and top topics |
+| `GET` | `/api/sentiment_history` | 24-hour time-series aggregates array (`hours` query param) |
+| `GET` | `/api/crisis_alerts` | Active and historical Z-Score anomaly alerts array |
+| `GET` | `/api/competitor_comparison` | Sentiment breakdown across target brand and competitors |
+| `GET` | `/api/tweets` | Filtered list of raw tweets (`filter`, `search`, `limit` params) |
+| `POST` | `/api/manual_analyze` | Text sentiment inference with DistilBERT (Rate Limited: 30 req/min) |
+| `POST` | `/api/webhook/n8n` | Webhook endpoint for ingested posts from n8n workflows |
+| `POST` | `/api/register_user` | User onboarding registration endpoint for n8n Section 2 |
+| `POST` | `/api/simulate_spike` | Demo control toggling anomaly spike state |
+| `POST` | `/api/toggle_stream` | Demo control toggling background ingestion stream state |
+
+---
+
+## 🗄️ Database Schema (`database/schema.sql`)
+
+```sql
+-- PostgreSQL DDL Tables
+tweets (id, text, author, handle, timestamp, likes, retweets, topic)
+sentiment_scores (id, tweet_id, sentiment, confidence, frustration_score, happiness_score, sarcasm_detected, crisis_score)
+crisis_alerts (id, timestamp, severity, title, root_cause, z_score, negative_spike_pct, status)
+hourly_aggregates (id, hour_timestamp, positive_pct, neutral_pct, negative_pct, tweet_volume, z_score, crisis_flag)
+users (email, name, registered_at)
 ```
-.
-├── src/
-│   ├── twitter_scraper.py      # Twitter stream collector & keyword filter
-│   ├── sentiment_analyzer.py   # DistilBERT & Gemini NLP inference engine
-│   ├── crisis_detector.py      # Z-Score time-series anomaly algorithm
-│   ├── app.py                  # FastAPI backend REST services
-│   └── dashboard.py            # Streamlit real-time monitoring dashboard
-├── docker/
-│   ├── Dockerfile              # Multi-stage Python container build
-│   └── docker-compose.yml      # Orchestrates FastAPI, Postgres, and n8n
-├── database/
-│   └── schema.sql              # PostgreSQL DDL schema & tables
-├── n8n-workflows/
-│   └── social-media-monitoring.json # Exportable n8n workflow spec
-├── requirements.txt
-└── README.md
-```
 
 ---
 
-## 🏃 Quick Start (Local Docker Compose)
+## 🏃 Quick Start (Docker Compose)
+
+The project uses a single primary `docker-compose.yml` file located at the repository root.
 
 ```bash
-# 1. Clone repo
-git clone https://gitea.local/ayush/social-media-sentiment.git
-cd social-media-sentiment
+# 1. Clone repository
+git clone https://github.com/ayush/social-media-sentiment.git
+cd Social-Media-Sentiment-Analysis
 
-# 2. Configure environment variables
+# 2. Configure Environment Variables
 cp .env.example .env
-# Set GEMINI_API_KEY=your_key_here
 
-# 3. Spin up full stack
-docker-compose -f docker/docker-compose.yml up --build -d
+# 3. Launch Docker Compose Stack
+docker-compose up --build -d
 ```
 
-Access Services:
-- **Web App / Dashboard**: http://localhost:3000
+### Access Services:
 - **FastAPI OpenAPI Specs**: http://localhost:8000/docs
 - **n8n Automation Console**: http://localhost:5678
+- **PostgreSQL Database**: `localhost:5432` (`sentiment_db`)
 
 ---
 
-## 🎓 Interview Talking Points (US Tech Prep)
+## ⚡ Input Validation & Security Measures
 
-- **Sarcasm Handling**: Combines contrastive keyphrase evaluation with engagement anomalies and Gemini's transformer context.
-- **Latency & Throughput**: Sub-100ms NLP inference with streaming batch execution capable of processing >1000 comments/hour.
-- **Anomaly Detection**: Z-score calculation on rolling 24-hour sentiment window ensures zero false alarms while guaranteeing immediate crisis alert dispatching.
+- **Rate Limiting**: In-memory IP rate limiter applied to `POST /api/manual_analyze`, `POST /api/webhook/n8n`, and `POST /api/register_user` enforcing a maximum of 30 requests/minute per IP (returns HTTP 429 Too Many Requests on breach).
+- **Input Sanitization**: HTML escaping and string truncation (max 5000 chars) preventing XSS and injection attacks.
+- **Environment Isolation**: `.env*` files strictly excluded via `.gitignore`. Sensitive n8n credentials managed via n8n Credential Store using `CRISIS_EMAIL_LIST` env configuration.
+
+---
+
+## ⚠️ Known Limitations & Design Trade-offs
+
+1. **Sarcasm Detection Accuracy (~70% Accuracy)**: Sarcasm detection combines contrastive phrase heuristics (e.g. `/s` tags, positive keywords paired with failure terms) with DistilBERT token probability scoring. While effective for common patterns, complex contextual sarcasm may require full LLM fine-tuning.
+2. **Rate Limits on Twitter/X API**: Tweepy v2 collector defaults to exponential backoff and mock stream fallback when live Bearer tokens are rate-limited or unconfigured.
+3. **Model Weights Downloading**: When running offline or without internet access to Hugging Face Hub, the analyzer automatically falls back to an internal heuristic sentiment engine.

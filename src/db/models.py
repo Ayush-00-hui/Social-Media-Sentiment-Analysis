@@ -12,13 +12,20 @@ DATABASE_URL = os.getenv(
     "postgresql://ayush_admin:secret_pass@postgres-db:5432/sentiment_db"
 )
 
-# Engine setup with connection pooling
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True
-)
+try:
+    engine = create_engine(
+        DATABASE_URL,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True
+    )
+except Exception as e:
+    print(f"[PostgreSQL ORM] Warning creating PostgreSQL engine ({e}). Falling back to local SQLite database.")
+    FALLBACK_DB_URL = "sqlite:///./sentimentpulse.db"
+    engine = create_engine(
+        FALLBACK_DB_URL,
+        connect_args={"check_same_thread": False}
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -74,6 +81,13 @@ class HourlyAggregateModel(Base):
     tweet_volume = Column(Integer, nullable=False)
     z_score = Column(Float, default=0.0)
     crisis_flag = Column(Boolean, default=False)
+
+class UserModel(Base):
+    __tablename__ = "users"
+
+    email = Column(String(255), primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    registered_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
     """Initializes tables in PostgreSQL on container launch."""
