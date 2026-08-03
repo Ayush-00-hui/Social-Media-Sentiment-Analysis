@@ -88,8 +88,8 @@ export const ManualAnalyzer: React.FC<ManualAnalyzerProps> = ({
               disabled={isAnalyzing || !inputText.trim()}
               className="px-6 py-2.5 rounded-full bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center space-x-2 shadow-md transition-all disabled:opacity-50"
             >
-              <Sparkles className="w-4 h-4 animate-spin text-amber-300" />
-              <span>{isAnalyzing ? "Running Gemini Inference..." : "Run AI NLP Analysis"}</span>
+              <Cpu className="w-4 h-4 text-white" />
+              <span>{isAnalyzing ? "Running DistilBERT & Gemini Inference..." : "Run Sentiment & Emotion Inference"}</span>
             </button>
           </div>
         </div>

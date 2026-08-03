@@ -8,12 +8,6 @@ import {
   CheckCircle,
   Terminal,
   Cpu,
-  Server,
-  Sparkles,
-  Layers,
-  BarChart3,
-  MessageSquare,
-  Lock,
 } from "lucide-react";
 import { StreamStats } from "../types";
 
@@ -27,8 +21,6 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({
   stats,
   onNavigateTab,
-  onSimulateSpike,
-  isTriggeringSpike,
 }) => {
   return (
     <div className="space-y-12 mb-16">
@@ -50,22 +42,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto pt-4">
-          {/* Traccia.AI Branding Badge */}
+          {/* Traccia Branding Badge */}
           <div className="inline-flex items-center space-x-2.5 mb-8 bg-slate-50 px-4.5 py-1.5 rounded-full border border-slate-200 shadow-sm">
-            <div className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-ping" />
+            <div className="w-2.5 h-2.5 rounded-full bg-slate-950" />
             <span className="text-xs font-black tracking-tight text-slate-950 font-['Outfit']">
-              Traccia<span className="text-indigo-600 font-bold">.AI</span> — Real-Time Social Intelligence
+              Traccia — Real-Time Social Intelligence Engine
             </span>
           </div>
 
-          {/* Main Headline with Traccia.AI Name */}
+          {/* Main Headline */}
           <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-slate-950 leading-[1.05] mb-8 font-['Outfit']">
-            Experience liftoff with Traccia.AI social sentiment intelligence
+            Experience liftoff with Traccia social sentiment intelligence
           </h1>
 
           {/* Subtitle Description */}
           <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
-            Traccia.AI continuously monitors live social media comment streams, executing fine-grained DistilBERT SST-2 sentiment inference, sarcasm detection, and statistical Z-Score anomaly alerts (Z ≥ 2.5σ).
+            Traccia continuously monitors live social media comment streams, executing fine-grained DistilBERT SST-2 sentiment inference, sarcasm detection, and statistical Z-Score anomaly alerts (Z ≥ 2.5σ).
           </p>
 
           {/* Hero Action Buttons */}
@@ -145,17 +137,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         </div>
       </div>
 
-      {/* Traccia.AI Core Platform Features Grid */}
+      {/* Traccia Core Platform Features Grid */}
       <div className="p-8 sm:p-12 rounded-3xl bg-white border border-slate-200/90 shadow-md">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <span className="text-xs font-black text-indigo-600 uppercase tracking-wider mb-2 block font-mono-code">
+          <span className="text-xs font-black text-slate-950 uppercase tracking-wider mb-2 block font-mono-code">
             Platform Capabilities
           </span>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-950 font-['Outfit'] tracking-tight">
             Built for Enterprise Social Intelligence & PR Protection
           </h2>
           <p className="text-sm text-slate-600 mt-2 font-medium">
-            Explore the core architectural components powering Traccia.AI’s real-time monitoring engine.
+            Explore the core architectural components powering Traccia’s real-time monitoring engine.
           </p>
         </div>
 
@@ -165,7 +157,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             onClick={() => onNavigateTab("sandbox")}
             className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
           >
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
               <Cpu className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
@@ -174,7 +166,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
               Executes local SST-2 sentiment pipelines, sarcasm heuristics, and dslim NER token extraction with model caching for sub-100ms SLAs.
             </p>
-            <span className="text-xs font-black text-indigo-600 flex items-center">
+            <span className="text-xs font-black text-slate-950 flex items-center">
               Test in NLP Sandbox <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </span>
           </div>
@@ -184,7 +176,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             onClick={() => onNavigateTab("dashboard")}
             className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
@@ -193,7 +185,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
               Automatically evaluates negative comment volume spikes against rolling 24-hour baselines using Z = (X - μ) / σ (Z ≥ 2.5σ trigger).
             </p>
-            <span className="text-xs font-black text-amber-700 flex items-center">
+            <span className="text-xs font-black text-slate-950 flex items-center">
               View Crisis Alerts <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </span>
           </div>
@@ -203,7 +195,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             onClick={() => onNavigateTab("n8n")}
             className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 cursor-pointer transition-all hover:-translate-y-1 shadow-sm"
           >
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-200 text-slate-900 flex items-center justify-center mb-4">
               <Workflow className="w-6 h-6" />
             </div>
             <h3 className="text-lg font-extrabold text-slate-950 mb-2 font-['Outfit']">
@@ -212,7 +204,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <p className="text-xs text-slate-600 leading-relaxed font-medium mb-4">
               Master n8n workflow polls the sentiment engine every 30s, dispatches Slack notifications to #eng-alerts, and logs incidents in PostgreSQL.
             </p>
-            <span className="text-xs font-black text-emerald-700 flex items-center">
+            <span className="text-xs font-black text-slate-950 flex items-center">
               Inspect n8n Workflows <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </span>
           </div>

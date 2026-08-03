@@ -38,7 +38,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Activity className="w-4 h-4 text-white" />
           </div>
           <span className="text-xl font-black tracking-tight text-slate-950 font-['Outfit']">
-            Traccia<span className="text-slate-500 font-medium">.AI</span>
+            Traccia
           </span>
         </div>
 

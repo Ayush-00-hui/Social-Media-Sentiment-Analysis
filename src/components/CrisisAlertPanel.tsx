@@ -150,7 +150,7 @@ export const CrisisAlertPanel: React.FC<CrisisAlertPanelProps> = ({
               >
                 <Cpu className="w-3.5 h-3.5" />
                 <span>
-                  {draftingResponse ? "Drafting..." : "AI Response Statement"}
+                  {draftingResponse ? "Drafting..." : "Draft Executive Statement"}
                 </span>
               </button>
 
