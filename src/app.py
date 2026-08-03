@@ -9,9 +9,11 @@ import html
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Depends, Query, Request, status, Header
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status, Header, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
+import urllib.request
+import urllib.parse
 import jwt
 import bcrypt
 import json
@@ -229,8 +231,18 @@ class UserProfileResponse(BaseModel):
     competitor_keywords: List[str]
     plan_tier: str
 
+def trigger_n8n_welcome_webhook(email: str, company_name: str):
+    """Fires a background webhook to n8n to send the welcome email."""
+    webhook_url = os.getenv("N8N_WEBHOOK_URL", "http://localhost:5678/webhook/welcome-email")
+    try:
+        data = json.dumps({"email": email, "company_name": company_name}).encode('utf-8')
+        req = urllib.request.Request(webhook_url, data=data, headers={'Content-Type': 'application/json'}, method='POST')
+        urllib.request.urlopen(req, timeout=5)
+    except Exception as e:
+        logger.error(f"Failed to trigger n8n welcome webhook: {e}")
+
 @app.post("/api/auth/register")
-def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
+def register_user(req: UserRegisterRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     if not req.brand_keywords:
         raise HTTPException(status_code=400, detail="At least one brand keyword is required")
     if db.query(UserModel).filter(UserModel.email == req.email).first():
@@ -247,6 +259,9 @@ def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+    
+    # Trigger n8n to send the welcome email asynchronously
+    background_tasks.add_task(trigger_n8n_welcome_webhook, user.email, user.company_name)
     
     token = create_access_token({"sub": user.email})
     return {

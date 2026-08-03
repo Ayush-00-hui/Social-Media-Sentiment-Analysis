@@ -274,11 +274,11 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "register",
+        "path": "welcome-email",
         "responseMode": "onReceived",
         "options": {}
       },
-      "name": "E1. Registration Webhook",
+      "name": "E1. Webhook - Welcome Email",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
@@ -289,47 +289,10 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "string": [
-            {
-              "value1": "={{$json.body.email}}",
-              "operation": "isNotEmpty"
-            }
-          ]
-        }
-      },
-      "name": "E2. Is Email Provided?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [
-        380,
-        900
-      ]
-    },
-    {
-      "parameters": {
-        "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/auth/generate_setup_link",
-        "options": {
-          "timeout": 5000
-        },
-        "jsonParameters": true,
-        "bodyParametersJson": "{ \"email\": \"{{$json.body.email}}\" }"
-      },
-      "name": "E3. Login System - Generate Setup Link",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 1,
-      "position": [
-        600,
-        840
-      ],
-      "notes": "NEW - calls the backend's auth system to create a one-time login/setup link for the new client, instead of the workflow ever handling passwords itself."
-    },
-    {
-      "parameters": {
         "fromEmail": "hello@traccia.ai",
         "toEmail": "={{$json.body.email}}",
-        "subject": "Welcome to Traccia - Set Up Your Account",
-        "html": "<h2>Welcome, {{$json.body.name || 'there'}}</h2><p>Your Traccia account is ready. Click below to set your password and log in:</p><p><a href=\"{{$json.setupLink}}\">Set up your account</a></p><p>Once logged in you'll see real-time sentiment tracking for your brand.</p>"
+        "subject": "Welcome to Traccia!",
+        "html": "<h2>Welcome to Traccia, {{$json.body.company_name}}!</h2><p>Your multi-tenant monitoring dashboard is ready.</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app/login\">Log in here</a> with the password you just created.</p>"
       },
       "name": "E4. Send Welcome Email With Login Link",
       "type": "n8n-nodes-base.emailSend",
@@ -338,33 +301,6 @@
         820,
         840
       ]
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO clients (email, company_name, registered_at) VALUES ('{{$json.body.email}}', '{{$json.body.company_name}}', NOW()) ON CONFLICT (email) DO NOTHING;"
-      },
-      "name": "E5. Save Client To Database",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 1,
-      "position": [
-        820,
-        960
-      ]
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={ \"status\": \"error\", \"message\": \"A valid email address is required to register.\" }"
-      },
-      "name": "E6. Respond - Missing Email",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1,
-      "position": [
-        380,
-        1020
-      ],
-      "notes": "PART E end."
     },
     {
       "parameters": {
@@ -563,51 +499,6 @@
         ]
       ]
     },
-    "E1. Registration Webhook": {
-      "main": [
-        [
-          {
-            "node": "E2. Is Email Provided?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "E2. Is Email Provided?": {
-      "main": [
-        [
-          {
-            "node": "E3. Login System - Generate Setup Link",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "E6. Respond - Missing Email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "E3. Login System - Generate Setup Link": {
-      "main": [
-        [
-          {
-            "node": "E4. Send Welcome Email With Login Link",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "E5. Save Client To Database",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "A1a. Fetch Google News RSS": {
       "main": [
         [
@@ -635,6 +526,17 @@
         [
           {
             "node": "A2. Get Live Sentiment Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E1. Webhook - Welcome Email": {
+      "main": [
+        [
+          {
+            "node": "E4. Send Welcome Email With Login Link",
             "type": "main",
             "index": 0
           }
