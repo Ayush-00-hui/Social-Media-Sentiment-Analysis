@@ -12,7 +12,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ../database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ayush_admin -d sentiment_db"]
       interval: 10s
@@ -21,7 +21,7 @@ services:
 
   fastapi-sentiment-engine:
     build:
-      context: ..
+      context: .
       dockerfile: docker/Dockerfile
     container_name: fastapi_sentiment_engine
     ports:
