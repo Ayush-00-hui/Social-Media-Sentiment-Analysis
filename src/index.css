@@ -2,13 +2,15 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, sans-serif;
     background-color: #ffffff;
     color: #0f172a;
+    letter-spacing: -0.02em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Outfit', 'Plus Jakarta Sans', 'Google Sans', sans-serif;
+    letter-spacing: -0.03em;
   }
 
   .font-mono-code {
@@ -16,59 +18,79 @@
   }
 }
 
-/* Minimalist Google Antigravity Ambient Background Orbs (Light Mode) */
-@keyframes orb-float-light-1 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(50px, -60px) scale(1.1);
-  }
-  66% {
-    transform: translate(-30px, 30px) scale(0.95);
-  }
+/* Google Antigravity Particle Dash Animation Keyframes */
+@keyframes dash-float-1 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(8deg); }
 }
 
-@keyframes orb-float-light-2 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(-60px, 40px) scale(1.05);
-  }
-  66% {
-    transform: translate(40px, -50px) scale(0.95);
-  }
+@keyframes dash-float-2 {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(-10deg); }
 }
 
-.animate-orb-light-1 {
-  animation: orb-float-light-1 20s ease-in-out infinite;
+@keyframes dash-float-3 {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(-10px) scale(1.15); }
 }
 
-.animate-orb-light-2 {
-  animation: orb-float-light-2 24s ease-in-out infinite;
+.animate-dash-1 { animation: dash-float-1 6s ease-in-out infinite; }
+.animate-dash-2 { animation: dash-float-2 8s ease-in-out infinite; }
+.animate-dash-3 { animation: dash-float-3 7s ease-in-out infinite; }
+
+/* Strict Google Pill Button & Glass Utilities */
+.antigravity-pill-primary {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px 0 rgba(15, 23, 42, 0.15);
 }
 
-/* Strict Minimalist Light Glass & Card Utilities */
-.glass-nav-light {
+.antigravity-pill-primary:hover {
+  background-color: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px 0 rgba(15, 23, 42, 0.25);
+}
+
+.antigravity-pill-secondary {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.antigravity-pill-secondary:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.glass-nav-antigravity {
   background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
 }
 
-.glass-card-light {
+.glass-card-antigravity {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-  border-radius: 1.25rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
 }
 
-.glass-card-light:hover {
+.glass-card-antigravity:hover {
   border-color: #cbd5e1;
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.08), 0 8px 10px -6px rgba(99, 102, 241, 0.05);
-  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.08);
 }
 
 /* Background Subtle Dot Mesh Grid */
@@ -93,5 +115,5 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+  background: #4185f4;
 }

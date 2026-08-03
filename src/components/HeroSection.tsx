@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Sparkles,
   ArrowRight,
   ShieldAlert,
   Zap,
@@ -9,6 +8,8 @@ import {
   Workflow,
   BarChart3,
   CheckCircle,
+  Download,
+  Terminal,
 } from "lucide-react";
 import { StreamStats } from "../types";
 
@@ -26,69 +27,74 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   isTriggeringSpike,
 }) => {
   return (
-    <div className="relative overflow-hidden mb-10 rounded-3xl bg-white border border-slate-200 shadow-xl p-8 sm:p-12 transition-all">
-      {/* Decorative Gradient Glow Backdrops */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-indigo-200/40 via-cyan-200/30 to-purple-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-tr from-cyan-200/40 via-indigo-200/30 to-blue-200/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative overflow-hidden mb-12 rounded-3xl bg-white p-8 sm:p-16 text-center">
+      {/* Official Google Antigravity Particle Arch Sprinkles Array */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 pointer-events-none overflow-hidden opacity-90 z-0">
+        {/* Red, Blue, Yellow, Green, Purple Floating Dashes & Dots */}
+        <div className="absolute top-4 left-1/4 w-3 h-1 bg-[#EA4335] rounded-full rotate-45 animate-dash-1" />
+        <div className="absolute top-8 left-1/3 w-2.5 h-1 bg-[#4285F4] rounded-full -rotate-12 animate-dash-2" />
+        <div className="absolute top-12 left-1/2 -translate-x-12 w-3.5 h-1 bg-[#FBBC05] rounded-full rotate-12 animate-dash-3" />
+        <div className="absolute top-6 right-1/3 w-3 h-1 bg-[#34A853] rounded-full -rotate-45 animate-dash-1" />
+        <div className="absolute top-10 right-1/4 w-2.5 h-1 bg-[#A142F4] rounded-full rotate-30 animate-dash-2" />
+        
+        {/* Additional Floating Color Particles Arc */}
+        <div className="absolute top-16 left-1/6 w-2 h-2 bg-[#4285F4] rounded-full animate-dash-3" />
+        <div className="absolute top-20 left-2/5 w-1.5 h-1.5 bg-[#EA4335] rounded-full animate-dash-1" />
+        <div className="absolute top-14 right-2/5 w-2 h-2 bg-[#34A853] rounded-full animate-dash-2" />
+        <div className="absolute top-22 right-1/6 w-1.5 h-1.5 bg-[#FBBC05] rounded-full animate-dash-3" />
+        <div className="absolute top-2 left-1/2 w-2 h-2 bg-[#A142F4] rounded-full animate-dash-1" />
+      </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto text-center">
-        {/* Top Announcement Badge */}
-        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold shadow-sm mb-6 animate-pulse">
-          <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Next-Gen Social Intelligence & Crisis Monitoring Engine</span>
-          <span className="bg-indigo-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-bold">
-            v2.5
+      <div className="relative z-10 max-w-4xl mx-auto pt-6">
+        {/* Google Antigravity Header Logo Badge (Matches Screenshot) */}
+        <div className="inline-flex items-center space-x-2.5 mb-8">
+          <svg viewBox="0 0 24 24" className="w-5 h-5">
+            <path d="M12 2L2 22h20L12 2z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round" className="text-slate-900" />
+            <path d="M12 2L6 14h12L12 2z" fill="#4285F4" />
+            <circle cx="12" cy="18" r="2" fill="#EA4335" />
+          </svg>
+          <span className="text-sm font-bold tracking-tight text-slate-900 font-['Outfit']">
+            Google <span className="font-normal text-slate-700">Antigravity</span>
           </span>
         </div>
 
-        {/* Main Hero Headline */}
-        <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 leading-tight sm:leading-tight mb-6 font-['Outfit']">
-          Transforming Social Data into{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-cyan-500 to-indigo-600">
-            Real-Time Crisis Intelligence
-          </span>
+        {/* Exact Headline from Screenshot */}
+        <h1 className="text-4xl sm:text-7xl font-extrabold tracking-tighter text-slate-900 leading-[1.08] mb-8 font-['Outfit']">
+          Experience liftoff with the next-gen agent platform
         </h1>
 
-        {/* Hero Description Subtitle */}
-        <p className="text-base sm:text-lg text-slate-600 max-w-3xl mx-auto mb-8 font-normal leading-relaxed">
-          Powered by Hugging Face <span className="font-semibold text-slate-900">DistilBERT</span> dual NLP inference and automated <span className="font-semibold text-slate-900">Z-Score anomaly math</span> (Z ≥ 2.5). Instantly detect sentiment drops, sarcasm spikes, and dispatch incident webhooks to Slack and Email.
+        {/* Subtitle Description */}
+        <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
+          Powered by dual Hugging Face DistilBERT inference and automated Z-Score anomaly intelligence (Z ≥ 2.5). Instantly detect PR crisis spikes and dispatch real-time incident webhooks.
         </p>
 
-        {/* Action Buttons Row */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mb-12">
+        {/* Official Pill Action Buttons (Matches Screenshot!) */}
+        <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
           <button
             onClick={() => onNavigateTab("dashboard")}
-            className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm flex items-center space-x-2 shadow-xl shadow-indigo-600/20 transition-all hover:scale-105"
+            className="antigravity-pill-primary flex items-center space-x-2 shadow-lg"
           >
-            <BarChart3 className="w-4 h-4" />
+            <Terminal className="w-4 h-4 text-slate-300" />
             <span>Launch Live Dashboard</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 ml-1" />
           </button>
 
           <button
             onClick={() => onNavigateTab("sandbox")}
-            className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-sm border border-slate-200 shadow-md flex items-center space-x-2 transition-all hover:scale-105"
+            className="antigravity-pill-secondary flex items-center space-x-2"
           >
-            <Cpu className="w-4 h-4 text-cyan-600" />
-            <span>Test NLP Sandbox</span>
-          </button>
-
-          <button
-            onClick={() => onNavigateTab("about")}
-            className="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm border border-slate-300/60 flex items-center space-x-2 transition-all"
-          >
-            <span>Learn About Us</span>
+            <span>Explore use cases</span>
           </button>
         </div>
 
-        {/* Live Key Highlights Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200 pt-8">
-          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-sm">
+        {/* Key Real-Time Metrics Strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200/80 pt-8">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-medium">
               <span>Brand Health Index</span>
-              <Activity className="w-3.5 h-3.5 text-indigo-500" />
+              <Activity className="w-3.5 h-3.5 text-indigo-600" />
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono-code">
+            <div className="text-2xl font-bold text-slate-900 font-mono-code">
               {stats.currentScore}/100
             </div>
             <div className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center">
@@ -96,12 +102,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-sm">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-medium">
               <span>Z-Score Anomaly</span>
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono-code">
+            <div className="text-2xl font-bold text-slate-900 font-mono-code">
               {stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}σ
             </div>
             <div className="text-[11px] text-slate-500 font-semibold mt-1">
@@ -109,12 +115,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-sm">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-medium">
               <span>Ingestion Velocity</span>
-              <Zap className="w-3.5 h-3.5 text-cyan-500" />
+              <Zap className="w-3.5 h-3.5 text-cyan-600" />
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono-code">
+            <div className="text-2xl font-bold text-slate-900 font-mono-code">
               {stats.tweetsPerMin} <span className="text-xs font-normal">tweets/min</span>
             </div>
             <div className="text-[11px] text-cyan-600 font-semibold mt-1">
@@ -122,12 +128,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 shadow-sm">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/60">
             <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-medium">
               <span>Total Social Posts</span>
-              <Workflow className="w-3.5 h-3.5 text-purple-500" />
+              <Workflow className="w-3.5 h-3.5 text-purple-600" />
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono-code">
+            <div className="text-2xl font-bold text-slate-900 font-mono-code">
               {stats.totalAnalyzed.toLocaleString()}
             </div>
             <div className="text-[11px] text-indigo-600 font-semibold mt-1">
