@@ -44,7 +44,7 @@ export const ManualAnalyzer: React.FC<ManualAnalyzerProps> = ({
           </div>
           <div>
             <h2 className="text-lg font-extrabold text-slate-950">
-              Interactive NLP Sandbox & Gemini Inference Engine
+              Interactive DistilBERT Sentiment Sandbox
             </h2>
             <p className="text-xs text-slate-500 font-medium">
               Test custom text inputs for fine-grained sentiment classification, emotion probability, sarcasm detection, and NER entities.

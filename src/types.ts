@@ -74,7 +74,7 @@ export interface AnalysisResult {
   entities: EntityMention[];
   summary: string;
   reasoning: string;
-  modelUsed: 'Gemini 3.6 Flash' | 'BERT DistilBERT (Simulated)' | 'VADER Rule-Engine';
+  modelUsed: 'DistilBERT Transformer' | 'BERT DistilBERT Engine' | 'VADER Rule-Engine';
 }
 
 export interface StreamStats {

@@ -1,7 +1,7 @@
 {
-  "name": "SentimentPulse AI — Crisis Monitoring & User Onboarding Pipeline",
+  "name": "Traccia — Real-Time Crisis Monitoring & User Onboarding Pipeline",
   "meta": {
-    "description": "Production automation pipeline for SentimentPulse AI. Section 1 (nodes 1-8): polls the FastAPI sentiment engine every 30s, evaluates statistical anomalies via Z-score, and escalates confirmed crises to Slack, email, and PostgreSQL. Section 2 (nodes 9-12): handles new user registrations from the dashboard site and sends a welcome email."
+    "description": "Production automation pipeline for Traccia. Section 1 (nodes 1-8): polls the FastAPI sentiment engine every 30s, evaluates statistical anomalies via Z-score (Z >= 2.5), and escalates confirmed crises to Slack, email, and PostgreSQL. Section 2 (nodes 9-12): handles new user registrations from the dashboard site and sends a welcome email."
   },
   "nodes": [
     {
@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "url": "http://fastapi-sentiment-engine:8000/api/current_sentiment",
+        "url": "http://localhost:8000/api/current_sentiment",
         "options": {
           "timeout": 5000
         }
@@ -38,7 +38,7 @@
         420,
         300
       ],
-      "notes": "Calls the FastAPI backend for current Z-score, sentiment breakdown, and crisis level."
+      "notes": "Calls the FastAPI backend at http://localhost:8000/api/current_sentiment for Z-score, sentiment breakdown, and crisis level."
     },
     {
       "parameters": {
@@ -63,7 +63,7 @@
     {
       "parameters": {
         "channel": "#eng-alerts",
-        "text": "⚠️ SentimentPulse Backend Unreachable — scheduled health poll failed. Please check FastAPI service status and container logs."
+        "text": "⚠️ Traccia Backend Unreachable — scheduled health poll failed. Please check FastAPI service status and container logs."
       },
       "name": "4a. Notify Engineering (Backend Down)",
       "type": "n8n-nodes-base.slack",
@@ -97,7 +97,7 @@
     },
     {
       "parameters": {
-        "url": "http://fastapi-sentiment-engine:8000/api/crisis_alerts",
+        "url": "http://localhost:8000/api/crisis_alerts",
         "options": {
           "timeout": 5000
         }
@@ -128,7 +128,7 @@
     {
       "parameters": {
         "channel": "#crisis-room",
-        "text": "🚨 BRAND SENTIMENT CRISIS DETECTED\nSeverity: {{$json.stats.activeCrisisLevel}}\nZ-score: {{$json.stats.zScore}}s (threshold: 2.5s)\nNegative sentiment: {{$json.stats.negativePct}}%\nDashboard: http://localhost:8501\nAction required: review live tweet feed and prepare response."
+        "text": "🚨 TRACCIA BRAND CRISIS DETECTED\nSeverity: {{$json.stats.activeCrisisLevel}}\nZ-score: {{$json.stats.zScore}}s (threshold: 2.5s)\nNegative sentiment: {{$json.stats.negativePct}}%\nDashboard: http://localhost:5173\nAction required: review live comment feed and prepare response."
       },
       "name": "7. Slack Crisis Room Alert",
       "type": "n8n-nodes-base.slack",
@@ -141,10 +141,10 @@
     },
     {
       "parameters": {
-        "fromEmail": "alerts@sentimentpulse.ai",
-        "toEmail": "={{$env.CRISIS_EMAIL_LIST}}",
-        "subject": "SentimentPulse Crisis Alert - {{$json.stats.activeCrisisLevel}} severity",
-        "html": "<h2>Brand Sentiment Crisis Detected</h2><table><tr><td><strong>Severity</strong></td><td>{{$json.stats.activeCrisisLevel}}</td></tr><tr><td><strong>Z-score</strong></td><td>{{$json.stats.zScore}}s (threshold 2.5s)</td></tr><tr><td><strong>Negative sentiment</strong></td><td>{{$json.stats.negativePct}}%</td></tr></table><p><a href=\"http://localhost:8501\">Open live dashboard</a></p><p>This is an automated alert from the SentimentPulse AI monitoring pipeline.</p>"
+        "fromEmail": "alerts@traccia.ai",
+        "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}",
+        "subject": "Traccia Crisis Alert - {{$json.stats.activeCrisisLevel}} severity",
+        "html": "<h2>Brand Sentiment Crisis Detected</h2><table><tr><td><strong>Severity</strong></td><td>{{$json.stats.activeCrisisLevel}}</td></tr><tr><td><strong>Z-score</strong></td><td>{{$json.stats.zScore}}s (threshold 2.5s)</td></tr><tr><td><strong>Negative sentiment</strong></td><td>{{$json.stats.negativePct}}%</td></tr></table><p><a href=\"http://localhost:5173\">Open live dashboard</a></p><p>This is an automated alert from the Traccia monitoring pipeline.</p>"
       },
       "name": "8. Email Leadership Digest",
       "type": "n8n-nodes-base.emailSend",
@@ -153,7 +153,7 @@
         1300,
         220
       ],
-      "notes": "Formal record for stakeholders who don't monitor Slack in real time. CRISIS_EMAIL_LIST is set via environment variable, not hardcoded."
+      "notes": "Formal record for stakeholders who don't monitor Slack in real time. CRISIS_EMAIL_LIST is set via environment variable."
     },
     {
       "parameters": {
@@ -193,10 +193,10 @@
     },
     {
       "parameters": {
-        "fromEmail": "hello@sentimentpulse.ai",
+        "fromEmail": "hello@traccia.ai",
         "toEmail": "={{$json.body.email}}",
-        "subject": "Welcome to SentimentPulse AI",
-        "html": "<h2>Welcome, {{$json.body.name || 'there'}}</h2><p>Your SentimentPulse AI account is active. You now have access to real-time brand sentiment tracking and automated crisis detection.</p><p><a href=\"http://localhost:8501\">Open your dashboard</a></p><p>If you have any questions, simply reply to this email.</p><p>- The SentimentPulse Team</p>"
+        "subject": "Welcome to Traccia",
+        "html": "<h2>Welcome, {{$json.body.name || 'there'}}</h2><p>Your Traccia account is active. You now have access to real-time brand sentiment tracking and automated crisis detection.</p><p><a href=\"http://localhost:5173\">Open your dashboard</a></p><p>If you have any questions, simply reply to this email.</p><p>- The Traccia Team</p>"
       },
       "name": "11a. Send Welcome Email",
       "type": "n8n-nodes-base.emailSend",
@@ -205,7 +205,7 @@
         640,
         560
       ],
-      "notes": "Professional onboarding email, no marketing fluff - states what the product does and where to go next."
+      "notes": "Professional onboarding email - states what the product does and where to go next."
     },
     {
       "parameters": {
@@ -219,7 +219,7 @@
         640,
         680
       ],
-      "notes": "Requires a 'users' table - not present in the current database/schema.sql, must be added."
+      "notes": "Logs registered user to PostgreSQL users table."
     },
     {
       "parameters": {

@@ -1,86 +1,134 @@
-# SentimentPulse AI: Social Media Sentiment & Crisis Monitoring Engine
+# Traccia — Real-Time Social Media Sentiment & PR Crisis Intelligence Engine
 
-Production-grade real-time social media NLP pipeline with DistilBERT inference, Z-Score anomaly crisis detection, self-hosted Docker Compose orchestration, PostgreSQL time-series logging, and automated n8n Slack/Email workflows.
-
----
-
-## 🏗️ System Architecture & Endpoints
-
-### Core Service Components
-- **FastAPI Backend Service (`src/app.py`):** Exposes REST API endpoints, rate limiting, and lifespan background workers.
-- **DistilBERT NLP Engine (`src/sentiment_analyzer.py`):** Hugging Face DistilBERT (`distilbert-base-uncased-finetuned-sst-2-english`) and NER (`dslim/distilbert-ner`) pipelines with model caching and fallback heuristics.
-- **Twitter Streaming Collector (`src/twitter_scraper.py`):** Tweepy v2 streaming API collector with keyword filtering, deduplication (`seen_ids`), and exponential backoff retry.
-- **Z-Score Anomaly Detector (`src/crisis_detector.py`):** Time-series anomaly calculation ($Z = \frac{x - \mu}{\sigma}$) triggering alerts when negative volume surge exceeds $2.5\sigma$.
-- **Background Worker Tasks (`src/background_tasks.py`):** Periodic 30s ingestion, sentiment analysis, Z-score evaluation, hourly aggregate calculations, and data retention cleanup.
-- **Streamlit & React Dashboard (`src/dashboard.py`):** Real-time monitoring UI connected to FastAPI backend with 10s auto-refresh.
-- **Master n8n Workflow (`n8n-workflows/social-media-monitoring.json`):** 30s polling anomaly monitoring, Slack/Email alert dispatching, and user registration onboarding pipeline.
+> Production-grade NLP sentiment monitoring and statistical anomaly detection engine built with React, FastAPI, DistilBERT, PostgreSQL, and n8n.
 
 ---
 
-## 🔌 API Endpoints Reference
+## 🚀 Overview
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/health` | Healthcheck probe returning API, DB, and service status |
-| `GET` | `/api/current_sentiment` | Real-time stats, Brand Health Index, sentiment breakdown, and top topics |
-| `GET` | `/api/sentiment_history` | 24-hour time-series aggregates array (`hours` query param) |
-| `GET` | `/api/crisis_alerts` | Active and historical Z-Score anomaly alerts array |
-| `GET` | `/api/competitor_comparison` | Sentiment breakdown across target brand and competitors |
-| `GET` | `/api/tweets` | Filtered list of raw tweets (`filter`, `search`, `limit` params) |
-| `POST` | `/api/manual_analyze` | Text sentiment inference with DistilBERT (Rate Limited: 30 req/min) |
-| `POST` | `/api/webhook/n8n` | Webhook endpoint for ingested posts from n8n workflows |
-| `POST` | `/api/register_user` | User onboarding registration endpoint for n8n Section 2 |
-| `POST` | `/api/simulate_spike` | Demo control toggling anomaly spike state |
-| `POST` | `/api/toggle_stream` | Demo control toggling background ingestion stream state |
+**Traccia** is a real-time social media sentiment intelligence platform designed to protect brand reputation by identifying negative sentiment volume spikes and PR crisis anomalies *before* they escalate.
+
+### Key Capabilities
+
+1. **Fine-Grained DistilBERT NLP Inference**:
+   - Executes local Hugging Face DistilBERT SST-2 sentiment pipelines (`Positive`, `Neutral`, `Negative`).
+   - Sarcasm & irony detection heuristics.
+   - Fine-grained token classification & dslim Named Entity Recognition (NER).
+   - Optional Gemini 3.6 Flash fallback.
+
+2. **Z-Score Anomaly Mathematics ($Z \ge 2.5\sigma$)**:
+   - Statistically calculates negative comment volume surges against a rolling 24-hour baseline.
+   - Automatic crisis classification (`CRITICAL`, `HIGH`, `MODERATE`).
+
+3. **n8n Automated Workflow Escalation**:
+   - Production multi-stage workflow spec (`n8n-workflows/social-media-monitoring.json`).
+   - 30-second cron monitoring loop, Slack notification routing to `#eng-alerts`, and email executive digests.
+
+4. **Self-Hosted Infrastructure Spec**:
+   - Single command Docker Compose spec (`docker-compose.yml`) for running PostgreSQL 15, FastAPI, and n8n.
+   - SQLite local fallback (`sqlite:///./traccia.db`).
 
 ---
 
-## 🗄️ Database Schema (`database/schema.sql`)
+## 🛠️ Tech Stack
 
-```sql
--- PostgreSQL DDL Tables
-tweets (id, text, author, handle, timestamp, likes, retweets, topic)
-sentiment_scores (id, tweet_id, sentiment, confidence, frustration_score, happiness_score, sarcasm_detected, crisis_score)
-crisis_alerts (id, timestamp, severity, title, root_cause, z_score, negative_spike_pct, status)
-hourly_aggregates (id, hour_timestamp, positive_pct, neutral_pct, negative_pct, tweet_volume, z_score, crisis_flag)
-users (email, name, registered_at)
+- **Frontend**: React 18, TypeScript, TailwindCSS v4, Recharts, Lucide Icons, Vite.
+- **Backend API**: FastAPI (Python 3.11), Uvicorn ASGI server, SQLAlchemy.
+- **NLP / ML**: Hugging Face Transformers, DistilBERT SST-2, dslim NER, Google Gemini.
+- **Database**: PostgreSQL 15, SQLite.
+- **Automation**: n8n Workflow Automation Engine.
+- **Deployment**: Vercel (Frontend) + Self-Hosted / Ngrok (Backend).
+
+---
+
+## 💻 Quick Start (One-Click Local Setup)
+
+### Option 1: One-Click Windows Batch Setup
+To launch BOTH the FastAPI backend and Vite frontend together in parallel windows:
+```cmd
+start_all_local.bat
+```
+
+To launch ONLY the backend FastAPI server (`http://localhost:8000`):
+```cmd
+start_backend.bat
+```
+
+### Option 2: PowerShell Setup Script
+```powershell
+.\setup_backend.ps1
+```
+
+### Option 3: Manual Command Line Setup
+1. **Clone & Install Dependencies**:
+   ```bash
+   git clone https://github.com/Ayush-00-hui/Social-Media-Sentiment-Analysis.git
+   cd Social-Media-Sentiment-Analysis
+   npm install
+   ```
+
+2. **Set up Python Virtual Environment**:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Configure Environment Variables**:
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Run FastAPI Backend**:
+   ```bash
+   uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+   ```
+
+5. **Run Vite Frontend**:
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## ⚙️ Environment Variables Spec (`.env`)
+
+```env
+# Database Connection (PostgreSQL or SQLite fallback)
+DATABASE_URL=postgresql://ayush_admin:secret_pass@localhost:5432/traccia_db
+
+# Twitter / X API v2 Bearer Token
+TWITTER_BEARER_TOKEN=your_twitter_bearer_token
+
+# Google Gemini API Key (Optional)
+GEMINI_API_KEY=your_gemini_api_key
+
+# n8n Automation Engine URL
+N8N_URL=http://localhost:5678
+
+# FastAPI Host & Port
+FASTAPI_HOST=0.0.0.0
+FASTAPI_PORT=8000
+
+# Frontend Base API URL (Set for Vercel / Ngrok deployment)
+VITE_API_BASE_URL=http://localhost:8000
 ```
 
 ---
 
-## 🏃 Quick Start (Docker Compose)
+## 🤖 n8n Workflow Setup
 
-The project uses a single primary `docker-compose.yml` file located at the repository root.
-
-```bash
-# 1. Clone repository
-git clone https://github.com/ayush/social-media-sentiment.git
-cd Social-Media-Sentiment-Analysis
-
-# 2. Configure Environment Variables
-cp .env.example .env
-
-# 3. Launch Docker Compose Stack
-docker-compose up --build -d
-```
-
-### Access Services:
-- **FastAPI OpenAPI Specs**: http://localhost:8000/docs
-- **n8n Automation Console**: http://localhost:5678
-- **PostgreSQL Database**: `localhost:5432` (`sentiment_db`)
+1. Start n8n on `http://localhost:5678` via Docker:
+   ```bash
+   docker run -d --name traccia-n8n -p 5678:5678 n8nio/n8n:latest
+   ```
+2. Open `http://localhost:5678` in your browser.
+3. Click **Workflows** $\rightarrow$ **Import from File**.
+4. Select `n8n-workflows/social-media-monitoring.json`.
+5. Toggle the switch to **Active**.
 
 ---
 
-## ⚡ Input Validation & Security Measures
+## 📄 License & Author
 
-- **Rate Limiting**: In-memory IP rate limiter applied to `POST /api/manual_analyze`, `POST /api/webhook/n8n`, and `POST /api/register_user` enforcing a maximum of 30 requests/minute per IP (returns HTTP 429 Too Many Requests on breach).
-- **Input Sanitization**: HTML escaping and string truncation (max 5000 chars) preventing XSS and injection attacks.
-- **Environment Isolation**: `.env*` files strictly excluded via `.gitignore`. Sensitive n8n credentials managed via n8n Credential Store using `CRISIS_EMAIL_LIST` env configuration.
-
----
-
-## ⚠️ Known Limitations & Design Trade-offs
-
-1. **Sarcasm Detection Accuracy (~70% Accuracy)**: Sarcasm detection combines contrastive phrase heuristics (e.g. `/s` tags, positive keywords paired with failure terms) with DistilBERT token probability scoring. While effective for common patterns, complex contextual sarcasm may require full LLM fine-tuning.
-2. **Rate Limits on Twitter/X API**: Tweepy v2 collector defaults to exponential backoff and mock stream fallback when live Bearer tokens are rate-limited or unconfigured.
-3. **Model Weights Downloading**: When running offline or without internet access to Hugging Face Hub, the analyzer automatically falls back to an internal heuristic sentiment engine.
+Developed by **Ayush** for social sentiment & real-time PR crisis analytics.
