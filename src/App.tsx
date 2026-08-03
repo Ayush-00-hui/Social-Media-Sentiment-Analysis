@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Header } from "./components/Header";
+import { Header, TabType } from "./components/Header";
+import { HeroSection } from "./components/HeroSection";
+import { AboutUsSection } from "./components/AboutUsSection";
 import { LiveGauge } from "./components/LiveGauge";
 import { SentimentChart } from "./components/SentimentChart";
 import { CrisisAlertPanel } from "./components/CrisisAlertPanel";
@@ -21,12 +23,31 @@ import { CheckCircle2, AlertTriangle, X } from "lucide-react";
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "sandbox" | "n8n" | "infra">("dashboard");
+  const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isTriggeringSpike, setIsTriggeringSpike] = useState(false);
   const [sandboxInitialText, setSandboxInitialText] = useState<string>("");
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   // Toast Notification
   const [toast, setToast] = useState<{ message: string; type: "success" | "alert" } | null>(null);
+
+  // Toggle Dark / Light Theme
+  const handleToggleDarkMode = () => {
+    setIsDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    // Default to dark mode
+    document.documentElement.classList.add("dark");
+  }, []);
 
   // Core Data States
   const [stats, setStats] = useState<StreamStats>({
@@ -156,7 +177,7 @@ export default function App() {
         fetchAlerts();
         fetchTweets();
         fetchHistory();
-        showToast(data.message, action === "TRIGGER" ? "alert" : "success");
+        showToast(data.message || (action === "TRIGGER" ? "PR Crisis Spike Activated!" : "Crisis Resolved."), action === "TRIGGER" ? "alert" : "success");
       }
     } catch (e) {
       console.error(e);
@@ -196,105 +217,137 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#030712] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden transition-colors duration-300">
       {/* Google Antigravity Ambient Background Canvas */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-cyan-600/15 rounded-full blur-[128px] animate-orb-1" />
-        <div className="absolute top-1/3 -right-32 w-[36rem] h-[36rem] bg-indigo-600/15 rounded-full blur-[128px] animate-orb-2" />
-        <div className="absolute -bottom-32 left-1/3 w-[40rem] h-[40rem] bg-violet-600/10 rounded-full blur-[128px] animate-orb-3" />
-        <div className="absolute inset-0 bg-grid-pattern opacity-20 animate-grid" />
+        <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-cyan-500/10 dark:bg-cyan-600/15 rounded-full blur-[128px] animate-orb-1" />
+        <div className="absolute top-1/3 -right-32 w-[36rem] h-[36rem] bg-indigo-500/10 dark:bg-indigo-600/15 rounded-full blur-[128px] animate-orb-2" />
+        <div className="absolute -bottom-32 left-1/3 w-[40rem] h-[40rem] bg-violet-500/10 dark:bg-violet-600/10 rounded-full blur-[128px] animate-orb-3" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-20 animate-grid" />
       </div>
 
       {/* Main Relative Layer */}
       <div className="relative z-10">
-      {/* Toast Notification */}
-      {toast && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-2xl flex items-center space-x-3 transition-all ${
-            toast.type === "alert"
-              ? "bg-rose-950/90 text-rose-200 border-rose-800"
-              : "bg-emerald-950/90 text-emerald-200 border-emerald-800"
-          }`}
-        >
-          {toast.type === "alert" ? (
-            <AlertTriangle className="w-5 h-5 text-rose-400 animate-bounce" />
-          ) : (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          )}
-          <span className="text-xs font-semibold">{toast.message}</span>
-          <button onClick={() => setToast(null)} className="ml-2 hover:opacity-80">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Global Header & Navigation */}
-      <Header
-        stats={stats}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onToggleStream={handleToggleStream}
-        onSimulateSpike={handleSimulateSpike}
-        isTriggeringSpike={isTriggeringSpike}
-      />
-
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        {activeTab === "dashboard" && (
-          <div className="space-y-6">
-            {/* Top Row: Live Gauge & 24h Trend Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <LiveGauge
-                  score={stats.currentScore}
-                  positivePct={sentimentBreakdown.positivePct}
-                  neutralPct={sentimentBreakdown.neutralPct}
-                  negativePct={sentimentBreakdown.negativePct}
-                  isSpikeActive={stats.isSpikeActive}
-                />
-              </div>
-              <div className="lg:col-span-2">
-                <SentimentChart history={history} />
-              </div>
-            </div>
-
-            {/* Middle Row: Active Crisis Alert Panel */}
-            <CrisisAlertPanel
-              alerts={alerts}
-              onTriggerWebhook={handleTriggerWebhook}
-            />
-
-            {/* Bottom Row: Live Tweets Feed & Brand Benchmark Matrix */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <TweetsFeed
-                  tweets={tweets}
-                  onAnalyzeTweet={handleAnalyzeSpecificTweet}
-                />
-              </div>
-              <div className="lg:col-span-1">
-                <BrandComparisonMatrix
-                  brands={brandComparisons}
-                  topTopics={topTopics}
-                />
-              </div>
-            </div>
+        {/* Toast Notification */}
+        {toast && (
+          <div
+            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-2xl flex items-center space-x-3 transition-all ${
+              toast.type === "alert"
+                ? "bg-rose-950/90 text-rose-200 border-rose-800"
+                : "bg-emerald-950/90 text-emerald-200 border-emerald-800"
+            }`}
+          >
+            {toast.type === "alert" ? (
+              <AlertTriangle className="w-5 h-5 text-rose-400 animate-bounce" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            )}
+            <span className="text-xs font-semibold">{toast.message}</span>
+            <button onClick={() => setToast(null)} className="ml-2 hover:opacity-80">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        {activeTab === "sandbox" && (
-          <ManualAnalyzer
-            initialText={sandboxInitialText}
-            onAnalyze={handleManualAnalyze}
-          />
-        )}
+        {/* Global Header & Navigation */}
+        <Header
+          stats={stats}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onToggleStream={handleToggleStream}
+          onSimulateSpike={handleSimulateSpike}
+          isTriggeringSpike={isTriggeringSpike}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={handleToggleDarkMode}
+        />
 
-        {activeTab === "n8n" && (
-          <N8nWorkflowVisualizer onTriggerWebhook={handleTriggerWebhook} />
-        )}
+        {/* Main Container */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          {activeTab === "overview" && (
+            <div>
+              <HeroSection
+                stats={stats}
+                onNavigateTab={setActiveTab}
+                onSimulateSpike={handleSimulateSpike}
+                isTriggeringSpike={isTriggeringSpike}
+              />
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-1">
+                    <LiveGauge
+                      score={stats.currentScore}
+                      positivePct={sentimentBreakdown.positivePct}
+                      neutralPct={sentimentBreakdown.neutralPct}
+                      negativePct={sentimentBreakdown.negativePct}
+                      isSpikeActive={stats.isSpikeActive}
+                    />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <SentimentChart history={history} />
+                  </div>
+                </div>
+                <CrisisAlertPanel
+                  alerts={alerts}
+                  onTriggerWebhook={handleTriggerWebhook}
+                />
+              </div>
+            </div>
+          )}
 
-        {activeTab === "infra" && <SelfHostedInfraViewer />}
-      </main>
+          {activeTab === "dashboard" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <LiveGauge
+                    score={stats.currentScore}
+                    positivePct={sentimentBreakdown.positivePct}
+                    neutralPct={sentimentBreakdown.neutralPct}
+                    negativePct={sentimentBreakdown.negativePct}
+                    isSpikeActive={stats.isSpikeActive}
+                  />
+                </div>
+                <div className="lg:col-span-2">
+                  <SentimentChart history={history} />
+                </div>
+              </div>
+
+              <CrisisAlertPanel
+                alerts={alerts}
+                onTriggerWebhook={handleTriggerWebhook}
+              />
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <TweetsFeed
+                    tweets={tweets}
+                    onAnalyzeTweet={handleAnalyzeSpecificTweet}
+                  />
+                </div>
+                <div className="lg:col-span-1">
+                  <BrandComparisonMatrix
+                    brands={brandComparisons}
+                    topTopics={topTopics}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "sandbox" && (
+            <ManualAnalyzer
+              initialText={sandboxInitialText}
+              onAnalyze={handleManualAnalyze}
+            />
+          )}
+
+          {activeTab === "n8n" && (
+            <N8nWorkflowVisualizer onTriggerWebhook={handleTriggerWebhook} />
+          )}
+
+          {activeTab === "about" && <AboutUsSection />}
+
+          {activeTab === "infra" && <SelfHostedInfraViewer />}
+        </main>
       </div>
     </div>
   );
