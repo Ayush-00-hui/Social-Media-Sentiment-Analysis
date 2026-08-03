@@ -18,6 +18,8 @@ import {
 } from "./types";
 import { CheckCircle2, AlertTriangle, X } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "sandbox" | "n8n" | "infra">("dashboard");
   const [isTriggeringSpike, setIsTriggeringSpike] = useState(false);
@@ -58,7 +60,7 @@ export default function App() {
   // Fetch Current Stream Stats
   const fetchCurrentStats = async () => {
     try {
-      const res = await fetch("/api/current_sentiment");
+      const res = await fetch(`${API_BASE}/api/current_sentiment`);
       if (res.ok) {
         const data = await res.json();
         setStats(data.stats);
@@ -74,7 +76,7 @@ export default function App() {
   // Fetch History
   const fetchHistory = async () => {
     try {
-      const res = await fetch("/api/sentiment_history");
+      const res = await fetch(`${API_BASE}/api/sentiment_history`);
       if (res.ok) {
         const data = await res.json();
         setHistory(data);
@@ -87,7 +89,7 @@ export default function App() {
   // Fetch Alerts
   const fetchAlerts = async () => {
     try {
-      const res = await fetch("/api/crisis_alerts");
+      const res = await fetch(`${API_BASE}/api/crisis_alerts`);
       if (res.ok) {
         const data = await res.json();
         setAlerts(data);
@@ -100,7 +102,7 @@ export default function App() {
   // Fetch Tweets Feed
   const fetchTweets = async () => {
     try {
-      const res = await fetch("/api/tweets");
+      const res = await fetch(`${API_BASE}/api/tweets`);
       if (res.ok) {
         const data = await res.json();
         setTweets(data);
@@ -129,7 +131,7 @@ export default function App() {
   // Handlers
   const handleToggleStream = async () => {
     try {
-      const res = await fetch("/api/toggle_stream", { method: "POST" });
+      const res = await fetch(`${API_BASE}/api/toggle_stream`, { method: "POST" });
       if (res.ok) {
         const data = await res.json();
         setStats((prev) => ({ ...prev, isStreaming: data.isStreaming }));
@@ -143,7 +145,7 @@ export default function App() {
   const handleSimulateSpike = async (action: "TRIGGER" | "RESOLVE") => {
     setIsTriggeringSpike(true);
     try {
-      const res = await fetch("/api/simulate_spike", {
+      const res = await fetch(`${API_BASE}/api/simulate_spike`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, topic: "Cloud Outage & Data Sync Bug" }),
@@ -164,7 +166,7 @@ export default function App() {
   };
 
   const handleManualAnalyze = async (text: string): Promise<AnalysisResult> => {
-    const res = await fetch("/api/manual_analyze", {
+    const res = await fetch(`${API_BASE}/api/manual_analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -174,14 +176,14 @@ export default function App() {
 
   const handleTriggerWebhook = async (event: string) => {
     try {
-      const res = await fetch("/api/n8n_webhook", {
+      const res = await fetch(`${API_BASE}/api/webhook/n8n`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ event }),
+        body: JSON.stringify({ event, text: "Sample webhook trigger from UI" }),
       });
       if (res.ok) {
         const data = await res.json();
-        showToast(`n8n Webhook Dispatched: ${data.eventTriggered}`, "success");
+        showToast(`n8n Webhook Dispatched: ${data.tweet_id || data.status}`, "success");
       }
     } catch (e) {
       console.error(e);
