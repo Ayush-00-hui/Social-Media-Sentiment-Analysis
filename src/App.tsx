@@ -196,7 +196,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12">
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden">
+      {/* Google Antigravity Ambient Background Canvas */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-[32rem] h-[32rem] bg-cyan-600/15 rounded-full blur-[128px] animate-orb-1" />
+        <div className="absolute top-1/3 -right-32 w-[36rem] h-[36rem] bg-indigo-600/15 rounded-full blur-[128px] animate-orb-2" />
+        <div className="absolute -bottom-32 left-1/3 w-[40rem] h-[40rem] bg-violet-600/10 rounded-full blur-[128px] animate-orb-3" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-20 animate-grid" />
+      </div>
+
+      {/* Main Relative Layer */}
+      <div className="relative z-10">
       {/* Toast Notification */}
       {toast && (
         <div
@@ -285,6 +295,7 @@ export default function App() {
 
         {activeTab === "infra" && <SelfHostedInfraViewer />}
       </main>
+      </div>
     </div>
   );
 }

@@ -32,25 +32,25 @@ export const Header: React.FC<HeaderProps> = ({
   isTriggeringSpike,
 }) => {
   return (
-    <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-xl">
+    <header className="glass-nav text-white sticky top-0 z-50 shadow-2xl backdrop-blur-2xl border-b border-white/10">
       {/* Top Banner Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Title */}
-        <div className="flex items-center space-x-3">
-          <div className="p-2.5 bg-gradient-to-tr from-cyan-500 to-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
+        <div className="flex items-center space-x-3.5">
+          <div className="p-2.5 bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/30 border border-white/20">
             <Activity className="w-6 h-6 text-white animate-pulse" />
           </div>
           <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-bold tracking-tight text-white">
-                SentimentPulse<span className="text-cyan-400">.AI</span>
+            <div className="flex items-center space-x-2.5">
+              <h1 className="text-2xl font-extrabold tracking-tight text-white font-['Outfit']">
+                SentimentPulse<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">.AI</span>
               </h1>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
-                NLP & Crisis Engine
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.25)]">
+                Antigravity NLP Engine
               </span>
             </div>
-            <p className="text-xs text-slate-400">
-              BERT + Gemini 3.6 Flash Real-Time Social Media Sentiment & Anomaly Detection
+            <p className="text-xs text-slate-400 font-medium">
+              Real-Time DistilBERT & Gemini Sentiment Analytics & Z-Score Crisis Intelligence
             </p>
           </div>
         </div>

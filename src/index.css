@@ -1,1 +1,131 @@
 @import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #030712;
+    color: #f3f4f6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-mono-code {
+    font-family: 'Space Grotesk', monospace;
+  }
+}
+
+/* Antigravity Floating Ambient Background Orbs */
+@keyframes orb-float-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(60px, -80px) scale(1.15);
+  }
+  66% {
+    transform: translate(-40px, 40px) scale(0.9);
+  }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-80px, 50px) scale(1.1);
+  }
+  66% {
+    transform: translate(50px, -60px) scale(0.95);
+  }
+}
+
+@keyframes orb-float-3 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(70px, 70px) scale(1.2);
+  }
+}
+
+@keyframes grid-pulse {
+  0%, 100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.animate-orb-1 {
+  animation: orb-float-1 18s ease-in-out infinite;
+}
+
+.animate-orb-2 {
+  animation: orb-float-2 22s ease-in-out infinite;
+}
+
+.animate-orb-3 {
+  animation: orb-float-3 26s ease-in-out infinite;
+}
+
+.animate-grid {
+  animation: grid-pulse 8s ease-in-out infinite;
+}
+
+/* Glassmorphism Components */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 12px 40px 0 rgba(99, 102, 241, 0.15), 0 0 20px 0 rgba(6, 182, 212, 0.1);
+  transform: translateY(-2px);
+}
+
+.glass-nav {
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Background Mesh Grid Pattern */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Custom Glowing Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4f46e5;
+}
