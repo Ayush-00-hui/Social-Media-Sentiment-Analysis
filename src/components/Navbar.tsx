@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  Activity,
-  AlertTriangle,
-  Radio,
-  RefreshCw,
-  ArrowUpRight,
-} from "lucide-react";
+import { Activity, AlertTriangle, RefreshCw, Radio, ArrowUpRight } from "lucide-react";
 import { StreamStats } from "../types";
 
 export type TabType = "overview" | "dashboard" | "sandbox" | "n8n" | "infra" | "about";
@@ -19,140 +13,99 @@ interface NavbarProps {
   isTriggeringSpike: boolean;
 }
 
+const NAV_LINKS: { id: TabType; label: string }[] = [
+  { id: "overview",   label: "Overview"       },
+  { id: "dashboard",  label: "Dashboard"      },
+  { id: "sandbox",    label: "Sandbox"        },
+  { id: "n8n",        label: "Workflows"      },
+  { id: "infra",      label: "Infrastructure" },
+  { id: "about",      label: "About"          },
+];
+
 export const Navbar: React.FC<NavbarProps> = ({
-  stats,
-  activeTab,
-  setActiveTab,
-  onSimulateSpike,
-  isTriggeringSpike,
+  stats, activeTab, setActiveTab, onSimulateSpike, isTriggeringSpike,
 }) => {
   return (
-    <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 py-4">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-        {/* Left: Brand Logo */}
-        <div
+    <nav style={{
+      position: "sticky", top: 0, zIndex: 50,
+      background: "rgba(255,255,255,0.94)",
+      backdropFilter: "blur(20px)",
+      WebkitBackdropFilter: "blur(20px)",
+      borderBottom: "1px solid #e8eaed",
+    }}>
+      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 24px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+
+        {/* Logo */}
+        <button
           onClick={() => setActiveTab("overview")}
-          className="flex items-center space-x-2.5 cursor-pointer group"
+          style={{ display: "flex", alignItems: "center", gap: "10px", background: "none", border: "none", cursor: "pointer", padding: 0 }}
         >
-          <div className="w-8 h-8 bg-slate-950 rounded-xl flex items-center justify-center shadow-sm">
-            <Activity className="w-4 h-4 text-white" />
+          <div style={{
+            width: 32, height: 32,
+            background: "#202124",
+            borderRadius: 10,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Activity size={16} color="#fff" />
           </div>
-          <span className="text-xl font-black tracking-tight text-slate-950 font-['Outfit']">
+          <span style={{ fontFamily: "Google Sans Display, Google Sans, sans-serif", fontWeight: 700, fontSize: "1rem", color: "#202124", letterSpacing: "-0.02em" }}>
             Traccia
           </span>
+        </button>
+
+        {/* Center nav links */}
+        <div style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+          {NAV_LINKS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                padding: "6px 12px",
+                borderRadius: 8,
+                fontFamily: "Google Sans, sans-serif",
+                fontWeight: activeTab === id ? 700 : 500,
+                fontSize: "0.8125rem",
+                color: activeTab === id ? "#202124" : "#5f6368",
+                background: activeTab === id ? "#f1f3f4" : "none",
+                transition: "all 0.15s ease",
+              }}
+              onMouseOver={e => { if (activeTab !== id) (e.target as HTMLElement).style.background = "#f8f9fa"; }}
+              onMouseOut={e => { if (activeTab !== id) (e.target as HTMLElement).style.background = "none"; }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Center: Minimalist Plain Text Navigation Links */}
-        <div className="hidden md:flex items-center space-x-8 text-sm font-bold text-slate-600">
-          <button
-            onClick={() => setActiveTab("overview")}
-            className={`transition-colors py-1 ${
-              activeTab === "overview" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            Overview
-          </button>
-
-          <button
-            onClick={() => setActiveTab("dashboard")}
-            className={`transition-colors py-1 ${
-              activeTab === "dashboard" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            Dashboard
-          </button>
-
-          <button
-            onClick={() => setActiveTab("sandbox")}
-            className={`transition-colors py-1 ${
-              activeTab === "sandbox" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            Sandbox
-          </button>
-
-          <button
-            onClick={() => setActiveTab("n8n")}
-            className={`transition-colors py-1 ${
-              activeTab === "n8n" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            Workflows
-          </button>
-
-          <button
-            onClick={() => setActiveTab("about")}
-            className={`transition-colors py-1 ${
-              activeTab === "about" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            About Us
-          </button>
-
-          <button
-            onClick={() => setActiveTab("infra")}
-            className={`transition-colors py-1 ${
-              activeTab === "infra" ? "text-slate-950 font-black border-b-2 border-slate-950" : "hover:text-slate-950"
-            }`}
-          >
-            Infrastructure
-          </button>
-        </div>
-
-        {/* Right: Minimal Actions */}
-        <div className="flex items-center space-x-3">
-          {/* Live Status Pill */}
-          <div className="hidden lg:flex items-center px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-800">
-            <Radio
-              className={`w-3.5 h-3.5 mr-1.5 ${
-                stats.isStreaming ? "text-emerald-600 animate-pulse" : "text-slate-400"
-              }`}
-            />
-            <span>{stats.isStreaming ? "LIVE" : "PAUSED"}</span>
+        {/* Right actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          {/* Live chip */}
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "4px 12px", borderRadius: 9999, background: "#f8f9fa", border: "1px solid #e8eaed" }}>
+            <span className={stats.isStreaming ? "live-dot" : ""} style={!stats.isStreaming ? { width: 7, height: 7, borderRadius: "50%", background: "#9aa0a6", display: "inline-block" } : {}} />
+            <span style={{ fontFamily: "Google Sans Mono, monospace", fontSize: "0.7rem", fontWeight: 700, color: stats.isStreaming ? "#137333" : "#5f6368", letterSpacing: "0.04em" }}>
+              {stats.isStreaming ? "LIVE" : "PAUSED"}
+            </span>
           </div>
 
-          {/* Crisis Button */}
+          {/* Crisis button */}
           {!stats.isSpikeActive ? (
-            <button
-              onClick={() => onSimulateSpike("TRIGGER")}
-              disabled={isTriggeringSpike}
-              className="px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 font-extrabold text-xs border border-rose-200 transition-all flex items-center space-x-1"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-              <span>Simulate Crisis</span>
+            <button onClick={() => onSimulateSpike("TRIGGER")} disabled={isTriggeringSpike} className="btn-danger">
+              <AlertTriangle size={13} />
+              Simulate Crisis
             </button>
           ) : (
-            <button
-              onClick={() => onSimulateSpike("RESOLVE")}
-              disabled={isTriggeringSpike}
-              className="px-3.5 py-1.5 rounded-full bg-emerald-600 text-white font-extrabold text-xs transition-all flex items-center space-x-1"
-            >
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>Resolve Crisis</span>
+            <button onClick={() => onSimulateSpike("RESOLVE")} disabled={isTriggeringSpike} className="btn-success">
+              <RefreshCw size={13} style={isTriggeringSpike ? { animation: "spin 1s linear infinite" } : {}} />
+              Resolve
             </button>
           )}
 
-          {/* Minimal Solid Black Pill CTA */}
-          <button
-            onClick={() => setActiveTab("infra")}
-            className="bg-slate-950 hover:bg-slate-800 text-white rounded-full text-xs font-black px-5 py-2 flex items-center space-x-1 shadow-sm transition-all"
-          >
-            <span>Get Started</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+          <button onClick={() => setActiveTab("infra")} className="btn-primary">
+            Get Started
+            <ArrowUpRight size={14} />
           </button>
         </div>
-      </div>
-
-      {/* Mobile Submenu */}
-      <div className="md:hidden border-t border-slate-200 bg-slate-50 py-2 px-6 overflow-x-auto scrollbar-none">
-        <nav className="flex space-x-4 text-xs font-bold text-slate-800">
-          <button onClick={() => setActiveTab("overview")}>Overview</button>
-          <button onClick={() => setActiveTab("dashboard")}>Dashboard</button>
-          <button onClick={() => setActiveTab("sandbox")}>Sandbox</button>
-          <button onClick={() => setActiveTab("n8n")}>Workflows</button>
-          <button onClick={() => setActiveTab("about")}>About Us</button>
-          <button onClick={() => setActiveTab("infra")}>Infra Spec</button>
-        </nav>
       </div>
     </nav>
   );
