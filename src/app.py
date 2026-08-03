@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
 import urllib.request
 import urllib.parse
+import subprocess
+import os
 import jwt
 import bcrypt
 import json
@@ -774,6 +776,20 @@ def register_user(payload: UserRegisterRequest, request: Request, db: Session = 
     except Exception as e:
         logger.error(f"Error registering user: {e}")
         return {"status": "ERROR", "message": str(e)}
+
+@app.post("/api/admin/n8n_tunnel/start")
+def start_n8n_tunnel(x_admin_secret: str = Header(None)):
+    expected_secret = os.getenv("ADMIN_SECRET", "oT-jaTfvlVjpYY_oqx4FMvNV4J74oP_B")
+    if x_admin_secret != expected_secret:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    try:
+        # Launch cloudflared tunnel for n8n in a detached new command window on Windows
+        subprocess.Popen('start cmd /k "echo Starting Cloudflare Tunnel for n8n... & cloudflared tunnel --url http://localhost:5678"', shell=True)
+        return {"status": "success", "message": "Cloudflare tunnel launch command triggered on the local PC. Check the local PC monitor for the TryCloudflare URL."}
+    except Exception as e:
+        logger.error(f"Failed to launch tunnel: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
