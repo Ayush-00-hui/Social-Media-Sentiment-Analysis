@@ -2,12 +2,20 @@
 DistilBERT & Gemini Dual-Engine Sentiment Analyzer
 Handles Sentiment (POS/NEU/NEG), Sarcasm Detection, Emotion Breakdown, and Named Entity Extraction
 """
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
 from typing import Dict, Any, List
 
 class SentimentAnalyzer:
     def __init__(self, model_name: str = "distilbert-base-uncased-finetuned-sst-2-english"):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if HAS_TORCH:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = "cpu (lightweight fallback)"
         print(f"[BERT Engine] Initializing DistilBERT model on compute device: {self.device}")
         
     def analyze_text(self, text: str) -> Dict[str, Any]:
