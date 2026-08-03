@@ -1,7 +1,7 @@
 {
-  "name": "Traccia — Real-Time Crisis Monitoring & User Onboarding Pipeline",
+  "name": "Traccia — Full Automation Pipeline (Monitoring, Digest, Onboarding)",
   "meta": {
-    "description": "Production automation pipeline for Traccia. Section 1 (nodes 1-8): polls the FastAPI sentiment engine every 30s, evaluates statistical anomalies via Z-score (Z >= 2.5), and escalates confirmed crises to Slack, email, and PostgreSQL. Section 2 (nodes 9-12): handles new user registrations from the dashboard site and sends a welcome email."
+    "description": "PART A (nodes A1-A5): real-time poll every 30s, always logs a trend point, routes by severity. PART B (nodes B1-B7): severity-based alerts (Medium/High/Critical) to Slack/Email. PART C (nodes C1-C3): auto-resolution when a crisis clears. PART D (nodes D1-D5): daily digest at 9am — scrapes 200+ tweets, converts them into a plain-language paragraph summary, and emails it. PART E (nodes E1-E6): client registration, login-setup-link generation, and welcome email."
   },
   "nodes": [
     {
@@ -15,14 +15,14 @@
           ]
         }
       },
-      "name": "1. Scheduled Poll (Every 30s)",
+      "name": "A1. Timer - Every 30 Seconds",
       "type": "n8n-nodes-base.cron",
       "typeVersion": 1,
       "position": [
-        200,
-        300
+        160,
+        240
       ],
-      "notes": "Triggers the monitoring cycle every 30 seconds, matching the ingestion cadence documented in background_tasks.py."
+      "notes": "PART A start. Matches background_tasks.py ingestion cadence."
     },
     {
       "parameters": {
@@ -31,14 +31,14 @@
           "timeout": 5000
         }
       },
-      "name": "2. Fetch Live Sentiment Stats",
+      "name": "A2. Get Live Sentiment Stats",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        420,
-        300
+        380,
+        240
       ],
-      "notes": "Calls the FastAPI backend at http://localhost:8000/api/current_sentiment for Z-score, sentiment breakdown, and crisis level."
+      "notes": "Z-score, sentiment breakdown, crisis level for this cycle."
     },
     {
       "parameters": {
@@ -51,49 +51,84 @@
           ]
         }
       },
-      "name": "3. Backend Reachable?",
+      "name": "A3. Is Backend Reachable?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        640,
-        300
-      ],
-      "notes": "Guards against silent failures if the FastAPI service is down or unreachable."
+        600,
+        240
+      ]
     },
     {
       "parameters": {
         "channel": "#eng-alerts",
-        "text": "⚠️ Traccia Backend Unreachable — scheduled health poll failed. Please check FastAPI service status and container logs."
+        "text": "⚠️ Traccia backend unreachable during scheduled poll. Check FastAPI service and ngrok tunnel."
       },
-      "name": "4a. Notify Engineering (Backend Down)",
+      "name": "A3a. Alert Engineering - Backend Down",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 1,
       "position": [
-        860,
-        460
-      ],
-      "notes": "Infrastructure-level alert, separate from brand-sentiment crisis alerts, so on-call engineers aren't confused with a marketing/PR issue."
+        820,
+        380
+      ]
     },
     {
       "parameters": {
-        "conditions": {
-          "number": [
-            {
-              "value1": "={{$json.stats.zScore}}",
-              "operation": "larger",
-              "value2": 2.5
-            }
-          ]
-        }
+        "operation": "executeQuery",
+        "query": "INSERT INTO sentiment_history_log (timestamp, z_score, negative_pct, crisis_level) VALUES (NOW(), {{$json.stats.zScore}}, {{$json.stats.negativePct}}, '{{$json.stats.activeCrisisLevel}}');"
       },
-      "name": "4b. Z-Score Exceeds Crisis Threshold (2.5s)",
-      "type": "n8n-nodes-base.if",
+      "name": "A4. Save Trend Point To Database",
+      "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
       "position": [
-        860,
-        200
+        820,
+        160
       ],
-      "notes": "Statistical anomaly gate - matches the 2.5 standard-deviation threshold used in crisis_detector.py (99.4% confidence level)."
+      "notes": "Runs on every poll, crisis or not, so history has no gaps."
+    },
+    {
+      "parameters": {
+        "dataPropertyName": "={{$json.stats.activeCrisisLevel}}",
+        "rules": {
+          "rules": [
+            {
+              "value": "MEDIUM",
+              "output": 0
+            },
+            {
+              "value": "HIGH",
+              "output": 1
+            },
+            {
+              "value": "CRITICAL",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 3
+      },
+      "name": "A5. Decide Severity Level",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        160
+      ],
+      "notes": "PART A end / PART B and C begin. Output 0=Medium, 1=High, 2=Critical, 3=Normal (goes to Part C)."
+    },
+    {
+      "parameters": {
+        "channel": "#crisis-room",
+        "text": "🟡 Traccia — Elevated sentiment (MEDIUM)\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nWorth a look, no action required yet.\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
+      },
+      "name": "B1. Slack - Medium Notice",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        20
+      ],
+      "notes": "PART B start. Quiet tone for the lowest alert tier."
     },
     {
       "parameters": {
@@ -102,58 +137,206 @@
           "timeout": 5000
         }
       },
-      "name": "5. Retrieve Crisis Context",
+      "name": "B2. Get Crisis Details (High)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [
-        1080,
-        100
-      ],
-      "notes": "Pulls supporting detail (root cause, negative-spike %) to enrich the alert instead of sending a bare number."
-    },
-    {
-      "parameters": {
-        "operation": "executeQuery",
-        "query": "INSERT INTO crisis_alerts (id, timestamp, severity, title, z_score, negative_spike_pct, status) VALUES (gen_random_uuid()::text, NOW(), '{{$json.stats.activeCrisisLevel}}', 'Automated anomaly detection', {{$json.stats.zScore}}, {{$json.stats.negativePct}}, 'ACTIVE');"
-      },
-      "name": "6. Log Crisis to PostgreSQL",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 1,
-      "position": [
-        1080,
-        220
-      ],
-      "notes": "Persists the anomaly for historical trend analysis and the dashboard's Crisis Alerts tab."
+        1280,
+        140
+      ]
     },
     {
       "parameters": {
         "channel": "#crisis-room",
-        "text": "🚨 TRACCIA BRAND CRISIS DETECTED\nSeverity: {{$json.stats.activeCrisisLevel}}\nZ-score: {{$json.stats.zScore}}s (threshold: 2.5s)\nNegative sentiment: {{$json.stats.negativePct}}%\nDashboard: http://localhost:5173\nAction required: review live comment feed and prepare response."
+        "text": "🟠 Traccia — HIGH severity crisis\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nTopics: {{$json.alerts[0].affectedTopics.join(', ')}}\nSuggested action: {{$json.alerts[0].suggestedActions[0]}}\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
       },
-      "name": "7. Slack Crisis Room Alert",
+      "name": "B3. Slack - High Alert",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 1,
       "position": [
-        1300,
+        1520,
         100
-      ],
-      "notes": "Primary real-time channel for the response team."
+      ]
     },
     {
       "parameters": {
         "fromEmail": "alerts@traccia.ai",
         "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}",
-        "subject": "Traccia Crisis Alert - {{$json.stats.activeCrisisLevel}} severity",
-        "html": "<h2>Brand Sentiment Crisis Detected</h2><table><tr><td><strong>Severity</strong></td><td>{{$json.stats.activeCrisisLevel}}</td></tr><tr><td><strong>Z-score</strong></td><td>{{$json.stats.zScore}}s (threshold 2.5s)</td></tr><tr><td><strong>Negative sentiment</strong></td><td>{{$json.stats.negativePct}}%</td></tr></table><p><a href=\"http://localhost:5173\">Open live dashboard</a></p><p>This is an automated alert from the Traccia monitoring pipeline.</p>"
+        "subject": "Traccia — HIGH severity crisis alert",
+        "html": "<h2>HIGH severity brand sentiment crisis</h2><p><strong>Z-score:</strong> {{$json.stats.zScore}}s</p><p><strong>Negative:</strong> {{$json.stats.negativePct}}%</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">Open dashboard</a></p>"
       },
-      "name": "8. Email Leadership Digest",
+      "name": "B4. Email - High Alert",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
       "position": [
-        1300,
-        220
+        1520,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/crisis_alerts",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "B5. Get Crisis Details (Critical)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        260
+      ]
+    },
+    {
+      "parameters": {
+        "channel": "#crisis-room",
+        "text": "🔴 URGENT — Traccia CRITICAL crisis\nZ-score: {{$json.stats.zScore}}s | Negative: {{$json.stats.negativePct}}%\nTopics: {{$json.alerts[0].affectedTopics.join(', ')}}\nSuggested action: {{$json.alerts[0].suggestedActions[0]}}\n@channel please acknowledge.\nDashboard: https://social-media-sentiment-analysis-sandy.vercel.app"
+      },
+      "name": "B6. Slack - Critical Urgent",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "alerts@traccia.ai",
+        "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}",
+        "subject": "🔴 URGENT: Traccia CRITICAL crisis",
+        "html": "<h2 style=\"color:#c0392b\">CRITICAL brand sentiment crisis</h2><p><strong>Z-score:</strong> {{$json.stats.zScore}}s</p><p><strong>Negative:</strong> {{$json.stats.negativePct}}%</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">Open dashboard now</a></p>"
+      },
+      "name": "B7. Email - Critical Urgent",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        380
       ],
-      "notes": "Formal record for stakeholders who don't monitor Slack in real time. CRISIS_EMAIL_LIST is set via environment variable."
+      "notes": "PART B end."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id FROM crisis_alerts WHERE status = 'ACTIVE' ORDER BY timestamp DESC LIMIT 1;"
+      },
+      "name": "C1. Check For Active Crisis",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        480
+      ],
+      "notes": "PART C start. Runs when severity is back to Normal - checks if there's a lingering ACTIVE record to close out."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE crisis_alerts SET status = 'RESOLVED', resolved_at = NOW() WHERE status = 'ACTIVE';"
+      },
+      "name": "C2. Mark Crisis Resolved",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "channel": "#crisis-room",
+        "text": "✅ Traccia — sentiment back to normal, previous crisis marked resolved."
+      },
+      "name": "C3. Slack - Crisis Resolved",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        480
+      ],
+      "notes": "PART C end."
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "name": "D1. Timer - Daily 9AM",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        160,
+        680
+      ],
+      "notes": "PART D start."
+    },
+    {
+      "parameters": {
+        "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/tweets?limit=200",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "name": "D2. Scrape 200+ Tweets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        380,
+        680
+      ],
+      "notes": "Pulls at least 200 recent tweets for the daily summary (requires /api/tweets to accept a limit query param)."
+    },
+    {
+      "parameters": {
+        "jsCode": "const tweets = items[0].json.tweets || items[0].json || [];\nconst total = tweets.length;\nconst pos = tweets.filter(t => t.sentiment === 'POSITIVE').length;\nconst neg = tweets.filter(t => t.sentiment === 'NEGATIVE').length;\nconst neu = total - pos - neg;\nconst sampleNegative = tweets.filter(t => t.sentiment === 'NEGATIVE').slice(0, 3).map(t => `\"${t.text}\"`).join(' ');\nconst paragraph = `Over the last 24 hours, ${total} tweets were analyzed. ${pos} were positive, ${neu} neutral, and ${neg} negative. ${neg > 0 ? 'Recent negative examples include: ' + sampleNegative : 'No significant negative activity was recorded.'}`;\nreturn [{ json: { paragraph, total, pos, neg, neu } }];"
+      },
+      "name": "D3. Convert Tweets To Paragraph Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        600,
+        680
+      ],
+      "notes": "Basic Code node - turns the raw tweet array into a plain-language paragraph, no external AI call needed."
+    },
+    {
+      "parameters": {
+        "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/sentiment_history",
+        "options": {
+          "timeout": 5000
+        }
+      },
+      "name": "D4. Get 24h Stats History",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        820,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "digest@traccia.ai",
+        "toEmail": "={{$env.CRISIS_EMAIL_LIST || 'admin@traccia.ai'}}",
+        "subject": "Traccia — Daily Sentiment Digest",
+        "html": "<h2>Daily Sentiment Summary</h2><p>{{$node[\"D3. Convert Tweets To Paragraph Summary\"].json.paragraph}}</p><p><a href=\"https://social-media-sentiment-analysis-sandy.vercel.app\">View full dashboard</a></p>"
+      },
+      "name": "D5. Email - Daily Digest",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        680
+      ],
+      "notes": "PART D end. Now reads like a real summary paragraph instead of raw numbers."
     },
     {
       "parameters": {
@@ -162,14 +345,14 @@
         "responseMode": "onReceived",
         "options": {}
       },
-      "name": "9. Registration Webhook (Dashboard Sign-Up)",
+      "name": "E1. Registration Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [
-        200,
-        620
+        160,
+        900
       ],
-      "notes": "Called by the dashboard/site when a new user registers."
+      "notes": "PART E start."
     },
     {
       "parameters": {
@@ -182,162 +365,296 @@
           ]
         }
       },
-      "name": "10. Email Address Provided?",
+      "name": "E2. Is Email Provided?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
       "position": [
-        420,
-        620
+        380,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://diffuser-thousand-rule.ngrok-free.dev/api/auth/generate_setup_link",
+        "options": {
+          "timeout": 5000
+        },
+        "jsonParameters": true,
+        "bodyParametersJson": "{ \"email\": \"{{$json.body.email}}\" }"
+      },
+      "name": "E3. Login System - Generate Setup Link",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        600,
+        840
       ],
-      "notes": "Basic input validation before attempting DB write or email send."
+      "notes": "NEW - calls the backend's auth system to create a one-time login/setup link for the new client, instead of the workflow ever handling passwords itself."
     },
     {
       "parameters": {
         "fromEmail": "hello@traccia.ai",
         "toEmail": "={{$json.body.email}}",
-        "subject": "Welcome to Traccia",
-        "html": "<h2>Welcome, {{$json.body.name || 'there'}}</h2><p>Your Traccia account is active. You now have access to real-time brand sentiment tracking and automated crisis detection.</p><p><a href=\"http://localhost:5173\">Open your dashboard</a></p><p>If you have any questions, simply reply to this email.</p><p>- The Traccia Team</p>"
+        "subject": "Welcome to Traccia - Set Up Your Account",
+        "html": "<h2>Welcome, {{$json.body.name || 'there'}}</h2><p>Your Traccia account is ready. Click below to set your password and log in:</p><p><a href=\"{{$json.setupLink}}\">Set up your account</a></p><p>Once logged in you'll see real-time sentiment tracking for your brand.</p>"
       },
-      "name": "11a. Send Welcome Email",
+      "name": "E4. Send Welcome Email With Login Link",
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2,
       "position": [
-        640,
-        560
-      ],
-      "notes": "Professional onboarding email - states what the product does and where to go next."
+        820,
+        840
+      ]
     },
     {
       "parameters": {
         "operation": "executeQuery",
-        "query": "INSERT INTO users (email, name, registered_at) VALUES ('{{$json.body.email}}', '{{$json.body.name}}', NOW()) ON CONFLICT (email) DO NOTHING;"
+        "query": "INSERT INTO clients (email, company_name, registered_at) VALUES ('{{$json.body.email}}', '{{$json.body.company_name}}', NOW()) ON CONFLICT (email) DO NOTHING;"
       },
-      "name": "11b. Log Registration to PostgreSQL",
+      "name": "E5. Save Client To Database",
       "type": "n8n-nodes-base.postgres",
       "typeVersion": 1,
       "position": [
-        640,
-        680
-      ],
-      "notes": "Logs registered user to PostgreSQL users table."
+        820,
+        960
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
         "responseBody": "={ \"status\": \"error\", \"message\": \"A valid email address is required to register.\" }"
       },
-      "name": "12. Respond Missing Email",
+      "name": "E6. Respond - Missing Email",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
       "position": [
-        420,
-        760
+        380,
+        1020
       ],
-      "notes": "Returns a clear error instead of failing silently."
+      "notes": "PART E end."
     }
   ],
   "connections": {
-    "1. Scheduled Poll (Every 30s)": {
+    "A1. Timer - Every 30 Seconds": {
       "main": [
         [
           {
-            "node": "2. Fetch Live Sentiment Stats",
+            "node": "A2. Get Live Sentiment Stats",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "2. Fetch Live Sentiment Stats": {
+    "A2. Get Live Sentiment Stats": {
       "main": [
         [
           {
-            "node": "3. Backend Reachable?",
+            "node": "A3. Is Backend Reachable?",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "3. Backend Reachable?": {
+    "A3. Is Backend Reachable?": {
       "main": [
         [
           {
-            "node": "4b. Z-Score Exceeds Crisis Threshold (2.5s)",
+            "node": "A4. Save Trend Point To Database",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "4a. Notify Engineering (Backend Down)",
+            "node": "A3a. Alert Engineering - Backend Down",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "4b. Z-Score Exceeds Crisis Threshold (2.5s)": {
+    "A4. Save Trend Point To Database": {
       "main": [
         [
           {
-            "node": "5. Retrieve Crisis Context",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "6. Log Crisis to PostgreSQL",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "5. Retrieve Crisis Context": {
-      "main": [
-        [
-          {
-            "node": "7. Slack Crisis Room Alert",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "8. Email Leadership Digest",
+            "node": "A5. Decide Severity Level",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "9. Registration Webhook (Dashboard Sign-Up)": {
+    "A5. Decide Severity Level": {
       "main": [
         [
           {
-            "node": "10. Email Address Provided?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "10. Email Address Provided?": {
-      "main": [
-        [
-          {
-            "node": "11a. Send Welcome Email",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "11b. Log Registration to PostgreSQL",
+            "node": "B1. Slack - Medium Notice",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "12. Respond Missing Email",
+            "node": "B2. Get Crisis Details (High)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "B5. Get Crisis Details (Critical)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "C1. Check For Active Crisis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "B2. Get Crisis Details (High)": {
+      "main": [
+        [
+          {
+            "node": "B3. Slack - High Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "B4. Email - High Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "B5. Get Crisis Details (Critical)": {
+      "main": [
+        [
+          {
+            "node": "B6. Slack - Critical Urgent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "B7. Email - Critical Urgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C1. Check For Active Crisis": {
+      "main": [
+        [
+          {
+            "node": "C2. Mark Crisis Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "C2. Mark Crisis Resolved": {
+      "main": [
+        [
+          {
+            "node": "C3. Slack - Crisis Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D1. Timer - Daily 9AM": {
+      "main": [
+        [
+          {
+            "node": "D2. Scrape 200+ Tweets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D2. Scrape 200+ Tweets": {
+      "main": [
+        [
+          {
+            "node": "D3. Convert Tweets To Paragraph Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D3. Convert Tweets To Paragraph Summary": {
+      "main": [
+        [
+          {
+            "node": "D4. Get 24h Stats History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "D4. Get 24h Stats History": {
+      "main": [
+        [
+          {
+            "node": "D5. Email - Daily Digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E1. Registration Webhook": {
+      "main": [
+        [
+          {
+            "node": "E2. Is Email Provided?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E2. Is Email Provided?": {
+      "main": [
+        [
+          {
+            "node": "E3. Login System - Generate Setup Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "E6. Respond - Missing Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "E3. Login System - Generate Setup Link": {
+      "main": [
+        [
+          {
+            "node": "E4. Send Welcome Email With Login Link",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "E5. Save Client To Database",
             "type": "main",
             "index": 0
           }

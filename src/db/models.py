@@ -86,7 +86,12 @@ class UserModel(Base):
     __tablename__ = "users"
 
     email = Column(String(255), primary_key=True, index=True)
+    hashed_password = Column(String(255), nullable=False)
     name = Column(String(100), nullable=False)
+    company_name = Column(String(150), nullable=False)
+    brand_keywords = Column(Text, nullable=False, default="[]")  # Stored as JSON string
+    competitor_keywords = Column(Text, nullable=False, default="[]") # Stored as JSON string
+    plan_tier = Column(String(50), default="Enterprise Pro")
     registered_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():

@@ -9,9 +9,12 @@ import html
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Depends, Query, Request, status
+from fastapi import FastAPI, HTTPException, Depends, Query, Request, status, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, EmailStr
+import jwt
+import bcrypt
+import json
 from sqlalchemy.orm import Session
 
 from src.db.models import (
@@ -25,6 +28,36 @@ from src.logging_config import get_logger, generate_request_id
 logger = get_logger("FastAPIApp")
 analyzer = SentimentAnalyzer()
 crisis_detector = CrisisDetector()
+
+# JWT Config
+JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-traccia-key-change-in-prod")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = 24
+
+def get_password_hash(password: str) -> str:
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(hours=JWT_EXPIRATION_HOURS)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)):
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.split(" ")[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        email = payload.get("sub")
+        if email is None:
+            return None
+        return db.query(UserModel).filter(UserModel.email == email).first()
+    except jwt.PyJWTError:
+        return None
 
 # Global Application State for Demo Controls
 DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() in ("true", "1")
@@ -126,8 +159,107 @@ class WebhookPayload(BaseModel):
     retweets: Optional[int] = 0
 
 class UserRegisterRequest(BaseModel):
-    email: str = Field(..., min_length=3, max_length=255)
-    name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    password: str = Field(..., min_length=6)
+    company_name: str = Field(..., min_length=1, max_length=150)
+    brand_keywords: List[str]
+    competitor_keywords: List[str] = []
+
+class UserLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class KeywordUpdateRequest(BaseModel):
+    brand_keywords: List[str]
+    competitor_keywords: List[str] = []
+
+class UserProfileResponse(BaseModel):
+    email: str
+    company_name: str
+    brand_keywords: List[str]
+    competitor_keywords: List[str]
+    plan_tier: str
+
+@app.post("/api/auth/register")
+def register_user(req: UserRegisterRequest, db: Session = Depends(get_db)):
+    if not req.brand_keywords:
+        raise HTTPException(status_code=400, detail="At least one brand keyword is required")
+    if db.query(UserModel).filter(UserModel.email == req.email).first():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    user = UserModel(
+        email=req.email,
+        hashed_password=get_password_hash(req.password),
+        name=req.company_name, # keep for backward compatibility
+        company_name=req.company_name,
+        brand_keywords=json.dumps(req.brand_keywords),
+        competitor_keywords=json.dumps(req.competitor_keywords)
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
+    token = create_access_token({"sub": user.email})
+    return {
+        "token": token,
+        "user": {
+            "email": user.email,
+            "company_name": user.company_name,
+            "brand_keywords": json.loads(user.brand_keywords),
+            "competitor_keywords": json.loads(user.competitor_keywords),
+            "plan_tier": user.plan_tier
+        }
+    }
+
+@app.post("/api/auth/login")
+def login_user(req: UserLoginRequest, db: Session = Depends(get_db)):
+    user = db.query(UserModel).filter(UserModel.email == req.email).first()
+    if not user or not verify_password(req.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    token = create_access_token({"sub": user.email})
+    return {
+        "token": token,
+        "user": {
+            "email": user.email,
+            "company_name": user.company_name,
+            "brand_keywords": json.loads(user.brand_keywords),
+            "competitor_keywords": json.loads(user.competitor_keywords),
+            "plan_tier": user.plan_tier
+        }
+    }
+
+@app.get("/api/auth/me", response_model=UserProfileResponse)
+def get_user_profile(user: UserModel = Depends(get_current_user)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return {
+        "email": user.email,
+        "company_name": user.company_name,
+        "brand_keywords": json.loads(user.brand_keywords),
+        "competitor_keywords": json.loads(user.competitor_keywords),
+        "plan_tier": user.plan_tier
+    }
+
+@app.put("/api/auth/me/keywords", response_model=UserProfileResponse)
+def update_keywords(req: KeywordUpdateRequest, user: UserModel = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    if not req.brand_keywords:
+        raise HTTPException(status_code=400, detail="At least one brand keyword is required")
+        
+    user.brand_keywords = json.dumps(req.brand_keywords)
+    user.competitor_keywords = json.dumps(req.competitor_keywords)
+    db.commit()
+    db.refresh(user)
+    
+    return {
+        "email": user.email,
+        "company_name": user.company_name,
+        "brand_keywords": json.loads(user.brand_keywords),
+        "competitor_keywords": json.loads(user.competitor_keywords),
+        "plan_tier": user.plan_tier
+    }
 
 @app.get("/health")
 def health_check(db: Session = Depends(get_db)):
@@ -156,7 +288,7 @@ def read_root():
     }
 
 @app.get("/api/current_sentiment")
-def get_current_sentiment(db: Session = Depends(get_db)):
+def get_current_sentiment(db: Session = Depends(get_db), user: Optional[UserModel] = Depends(get_current_user)):
     """
     Fetches real-time sentiment stats, breakdown, brand comparisons, and top topics.
     Matches StreamStats & dashboard frontend contract.
@@ -172,7 +304,7 @@ def get_current_sentiment(db: Session = Depends(get_db)):
             pos_pct = round((pos_count / total_tweets) * 100, 1)
             neg_pct = round((neg_count / total_tweets) * 100, 1)
             neu_pct = round((neu_count / total_tweets) * 100, 1)
-        elif DEMO_MODE:
+        elif DEMO_MODE or not user:
             total_tweets, health_score, pos_pct, neg_pct, neu_pct = 14825, 78, 65.0, 20.0, 15.0
         else:
             total_tweets, health_score, pos_pct, neg_pct, neu_pct = 0, 100, 0.0, 0.0, 0.0
@@ -181,12 +313,36 @@ def get_current_sentiment(db: Session = Depends(get_db)):
         z_score = active_alert.z_score if active_alert else (2.85 if app_state["is_spike_active"] else 0.45)
         crisis_level = active_alert.severity if active_alert else ("HIGH" if app_state["is_spike_active"] else "LOW")
 
+        # Custom user data
+        brand_name = user.company_name if user else "@TechBrand"
+        brand_keywords = json.loads(user.brand_keywords) if user else ["@TechBrand"]
+        competitors = json.loads(user.competitor_keywords) if user and user.competitor_keywords else ["@CompetitorA", "@CompetitorB"]
+        
+        brand_comparisons = [
+            {"brandName": brand_name, "positivePct": pos_pct if total_tweets > 0 else (68.0 if DEMO_MODE or not user else 0.0), "neutralPct": neu_pct if total_tweets > 0 else (17.0 if DEMO_MODE or not user else 0.0), "negativePct": neg_pct if total_tweets > 0 else (15.0 if DEMO_MODE or not user else 0.0), "volume": total_tweets if total_tweets > 0 else (14825 if DEMO_MODE or not user else 0), "netSentimentScore": pos_pct - neg_pct if total_tweets > 0 else (53.0 if DEMO_MODE or not user else 0.0)}
+        ]
+        
+        # Add competitors
+        for i, comp in enumerate(competitors[:2]):
+            demo_pos = 55.0 - (i*13.0)
+            demo_neu = 25.0 + (i*3.0)
+            demo_neg = 20.0 + (i*10.0)
+            demo_vol = 9210 - (i*2780)
+            brand_comparisons.append({
+                "brandName": comp, 
+                "positivePct": demo_pos if DEMO_MODE or not user else 0.0, 
+                "neutralPct": demo_neu if DEMO_MODE or not user else 0.0, 
+                "negativePct": demo_neg if DEMO_MODE or not user else 0.0, 
+                "volume": demo_vol if DEMO_MODE or not user else 0, 
+                "netSentimentScore": demo_pos - demo_neg if DEMO_MODE or not user else 0.0
+            })
+
         return {
             "stats": {
                 "totalAnalyzed": total_tweets,
                 "currentScore": health_score,
-                "avgConfidence": 93.4 if total_tweets > 0 or DEMO_MODE else 0.0,
-                "tweetsPerMin": 85 if total_tweets > 0 or DEMO_MODE else 0,
+                "avgConfidence": 93.4 if total_tweets > 0 or DEMO_MODE or not user else 0.0,
+                "tweetsPerMin": 85 if total_tweets > 0 or DEMO_MODE or not user else 0,
                 "activeCrisisLevel": crisis_level,
                 "zScore": z_score,
                 "isStreaming": app_state["is_streaming"],
@@ -197,15 +353,11 @@ def get_current_sentiment(db: Session = Depends(get_db)):
                 "neutralPct": neu_pct,
                 "negativePct": neg_pct
             },
-            "brandComparisons": [
-                {"brandName": "@TechBrand", "positivePct": pos_pct if total_tweets > 0 else (68.0 if DEMO_MODE else 0.0), "neutralPct": neu_pct if total_tweets > 0 else (17.0 if DEMO_MODE else 0.0), "negativePct": neg_pct if total_tweets > 0 else (15.0 if DEMO_MODE else 0.0), "volume": total_tweets if total_tweets > 0 else (14825 if DEMO_MODE else 0), "netSentimentScore": pos_pct - neg_pct if total_tweets > 0 else (53.0 if DEMO_MODE else 0.0)},
-                {"brandName": "@CompetitorA", "positivePct": 55.0 if DEMO_MODE else 0.0, "neutralPct": 25.0 if DEMO_MODE else 0.0, "negativePct": 20.0 if DEMO_MODE else 0.0, "volume": 9210 if DEMO_MODE else 0, "netSentimentScore": 35.0 if DEMO_MODE else 0.0},
-                {"brandName": "@CompetitorB", "positivePct": 42.0 if DEMO_MODE else 0.0, "neutralPct": 28.0 if DEMO_MODE else 0.0, "negativePct": 30.0 if DEMO_MODE else 0.0, "volume": 6430 if DEMO_MODE else 0, "netSentimentScore": 12.0 if DEMO_MODE else 0.0}
-            ],
+            "brandComparisons": brand_comparisons,
             "topTopics": [
-                {"topic": "API Auth / Login", "volume": 1240 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "NEGATIVE" if app_state["is_spike_active"] or DEMO_MODE else "POSITIVE"},
-                {"topic": "v4.0 Performance", "volume": 3410 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "POSITIVE"},
-                {"topic": "Cloud Migration", "volume": 890 if DEMO_MODE or total_tweets > 0 else 0, "sentiment": "NEUTRAL"}
+                {"topic": "API Auth / Login", "volume": 1240 if DEMO_MODE or not user or total_tweets > 0 else 0, "sentiment": "NEGATIVE" if app_state["is_spike_active"] or DEMO_MODE or not user else "POSITIVE"},
+                {"topic": "v4.0 Performance", "volume": 3410 if DEMO_MODE or not user or total_tweets > 0 else 0, "sentiment": "POSITIVE"},
+                {"topic": "Cloud Migration", "volume": 890 if DEMO_MODE or not user or total_tweets > 0 else 0, "sentiment": "NEUTRAL"}
             ]
         }
     except Exception as e:

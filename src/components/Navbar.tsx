@@ -1,6 +1,7 @@
 import React from "react";
-import { AlertTriangle, RefreshCw, ArrowUpRight } from "lucide-react";
+import { AlertTriangle, RefreshCw, ArrowUpRight, LogOut, User } from "lucide-react";
 import { StreamStats } from "../types";
+import { useAuth } from "../context/AuthContext";
 
 export type TabType = "overview" | "dashboard" | "sandbox" | "n8n" | "infra" | "about";
 
@@ -55,8 +56,10 @@ const WordMark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 );
 
 export const Navbar: React.FC<NavbarProps> = ({
-  stats, activeTab, setActiveTab, onSimulateSpike, isTriggeringSpike,
+  stats, activeTab, setActiveTab, onSimulateSpike, isTriggeringSpike, onToggleStream
 }) => {
+  const { user, logout } = useAuth();
+
   return (
     <nav style={{
       position: "sticky", top: 0, zIndex: 50,
@@ -101,6 +104,29 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+          {/* Settings Tab conditionally shown if auth logic is in Navbar, or just add it to NAV_LINKS if we pass it down. 
+              Actually, since it's an authenticated dashboard now, Settings should just be a tab. */}
+          <button
+                key="settings"
+                onClick={() => setActiveTab("settings")}
+                style={{
+                  background: activeTab === "settings" ? "#f1f3f4" : "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "6px 14px",
+                  borderRadius: 8,
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: activeTab === "settings" ? 600 : 400,
+                  fontSize: "0.825rem",
+                  color: activeTab === "settings" ? "#202124" : "#5f6368",
+                  transition: "all 0.12s ease",
+                  letterSpacing: "-0.01em",
+                }}
+                onMouseOver={e => { if (activeTab !== "settings") { e.currentTarget.style.background = "#f8f9fa"; e.currentTarget.style.color = "#202124"; } }}
+                onMouseOut={e => { if (activeTab !== "settings") { e.currentTarget.style.background = "none"; e.currentTarget.style.color = "#5f6368"; } }}
+              >
+                Settings
+              </button>
         </div>
 
         {/* ── Right: Status chip + actions */}
@@ -147,15 +173,39 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           )}
 
-          {/* CTA */}
-          <button
-            onClick={() => setActiveTab("infra")}
-            className="btn-primary"
-            style={{ padding: "7px 18px", fontSize: "0.825rem" }}
-          >
-            Get started
-            <ArrowUpRight size={13} />
-          </button>
+          {/* User Info & Logout */}
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 8, paddingLeft: 12, borderLeft: '1px solid #e8eaed' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#4285F4', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne', fontWeight: 700, fontSize: '0.875rem' }}>
+                  {user.company_name.charAt(0).toUpperCase()}
+                </div>
+                <span style={{ fontFamily: 'DM Sans', fontWeight: 600, fontSize: '0.875rem', color: '#202124' }}>
+                  {user.company_name}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  logout();
+                  window.location.reload();
+                }}
+                className="btn-secondary"
+                style={{ padding: '6px 12px', fontSize: '0.825rem' }}
+              >
+                <LogOut size={13} />
+                Log out
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setActiveTab("infra")}
+              className="btn-primary"
+              style={{ padding: "7px 18px", fontSize: "0.825rem", marginLeft: 8 }}
+            >
+              Get started
+              <ArrowUpRight size={13} />
+            </button>
+          )}
         </div>
       </div>
     </nav>
