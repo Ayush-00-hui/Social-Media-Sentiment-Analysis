@@ -26,7 +26,7 @@
     },
     {
       "parameters": {
-        "url": "http://localhost:8000/api/current_sentiment",
+        "url": "http://host.docker.internal:8000/api/current_sentiment",
         "options": {
           "timeout": 5000
         }
@@ -97,7 +97,7 @@
     },
     {
       "parameters": {
-        "url": "http://localhost:8000/api/crisis_alerts",
+        "url": "http://host.docker.internal:8000/api/crisis_alerts",
         "options": {
           "timeout": 5000
         }
