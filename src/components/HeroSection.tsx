@@ -20,11 +20,9 @@ interface HeroSectionProps {
 export const HeroSection: React.FC<HeroSectionProps> = ({
   stats,
   onNavigateTab,
-  onSimulateSpike,
-  isTriggeringSpike,
 }) => {
   return (
-    <div className="relative overflow-hidden mb-12 rounded-3xl bg-white border border-slate-200 p-8 sm:p-20 text-center shadow-xl">
+    <div className="relative overflow-hidden mb-12 rounded-3xl bg-white p-8 sm:p-20 text-center">
       {/* Background Particle Arch Sprinkles Array */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-72 pointer-events-none overflow-hidden opacity-95 z-0">
         <div className="absolute top-4 left-1/4 w-4 h-1.5 bg-[#EA4335] rounded-full rotate-45 animate-dash-1" />
@@ -41,29 +39,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto pt-4">
-        {/* Header Logo Badge */}
-        <div className="inline-flex items-center space-x-2.5 mb-8 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
+        {/* Minimal Badge */}
+        <div className="inline-flex items-center space-x-2 mb-8 bg-slate-50 px-4 py-1.5 rounded-full border border-slate-200 shadow-sm">
           <Activity className="w-4 h-4 text-indigo-600 animate-pulse" />
-          <span className="text-sm font-black tracking-tight text-slate-950 font-['Outfit']">
-            Traccia<span className="font-bold text-indigo-600">.AI</span> Platform
+          <span className="text-xs font-black tracking-tight text-slate-950 font-['Outfit']">
+            Traccia<span className="font-bold text-slate-700">.AI</span> Engine
           </span>
         </div>
 
-        {/* Headline */}
-        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-slate-950 leading-[1.04] mb-8 font-['Outfit']">
-          Experience liftoff with the next-gen social intelligence engine
+        {/* Minimal Massive Headline */}
+        <h1 className="text-5xl sm:text-7xl font-black tracking-tighter text-slate-950 leading-[1.05] mb-8 font-['Outfit']">
+          Experience liftoff with the next-gen social intelligence platform
         </h1>
 
         {/* Subtitle Description */}
-        <p className="text-lg sm:text-xl text-slate-700 max-w-2xl mx-auto mb-10 font-medium leading-relaxed">
+        <p className="text-base sm:text-xl text-slate-600 max-w-2xl mx-auto mb-10 font-normal leading-relaxed">
           Powered by dual Hugging Face DistilBERT inference and automated Z-Score anomaly math (Z ≥ 2.5). Instantly detect PR crisis spikes and dispatch real-time incident webhooks.
         </p>
 
-        {/* Action Buttons */}
+        {/* Ultra Minimal Pill Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
           <button
             onClick={() => onNavigateTab("dashboard")}
-            className="bg-slate-950 hover:bg-slate-800 text-white rounded-full text-sm font-black px-7 py-3.5 flex items-center space-x-2 shadow-lg transition-all hover:-translate-y-0.5"
+            className="pulse-pill-primary flex items-center space-x-2"
           >
             <Terminal className="w-4 h-4 text-slate-300" />
             <span>Launch Live Dashboard</span>
@@ -72,31 +70,31 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
           <button
             onClick={() => onNavigateTab("sandbox")}
-            className="bg-slate-100 hover:bg-slate-200 text-slate-900 border border-slate-300 rounded-full text-sm font-black px-7 py-3.5 flex items-center space-x-2 transition-all hover:-translate-y-0.5"
+            className="pulse-pill-secondary flex items-center space-x-2"
           >
-            <span>Explore NLP Sandbox</span>
+            <span>Explore use cases</span>
           </button>
         </div>
 
         {/* Key Real-Time Metrics Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200 pt-8">
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-600 text-xs mb-1 font-bold">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200/80 pt-8">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
               <span>Brand Health Index</span>
-              <Activity className="w-4 h-4 text-indigo-600" />
+              <Activity className="w-3.5 h-3.5 text-indigo-600" />
             </div>
             <div className="text-3xl font-black text-slate-950 font-mono-code">
               {stats.currentScore}/100
             </div>
             <div className="text-[11px] text-emerald-700 font-bold mt-1 flex items-center">
-              <CheckCircle className="w-3.5 h-3.5 mr-1" /> Real-time DB aggregated
+              <CheckCircle className="w-3 h-3 mr-1" /> Real-time DB aggregated
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-600 text-xs mb-1 font-bold">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
               <span>Z-Score Anomaly</span>
-              <ShieldAlert className="w-4 h-4 text-amber-600" />
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
             </div>
             <div className="text-3xl font-black text-slate-950 font-mono-code">
               {stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}σ
@@ -106,10 +104,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-600 text-xs mb-1 font-bold">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
               <span>Ingestion Velocity</span>
-              <Zap className="w-4 h-4 text-cyan-600" />
+              <Zap className="w-3.5 h-3.5 text-cyan-600" />
             </div>
             <div className="text-3xl font-black text-slate-950 font-mono-code">
               {stats.tweetsPerMin} <span className="text-xs font-bold">tpm</span>
@@ -119,10 +117,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-            <div className="flex items-center justify-between text-slate-600 text-xs mb-1 font-bold">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div className="flex items-center justify-between text-slate-500 text-xs mb-1 font-bold">
               <span>Total Social Posts</span>
-              <Workflow className="w-4 h-4 text-purple-600" />
+              <Workflow className="w-3.5 h-3.5 text-purple-600" />
             </div>
             <div className="text-3xl font-black text-slate-950 font-mono-code">
               {stats.totalAnalyzed.toLocaleString()}

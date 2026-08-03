@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    font-size: 18px; /* Magnify all rem-based sizes across the platform */
+  }
+
   body {
     font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, sans-serif;
     background-color: #ffffff;
@@ -10,7 +14,7 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Outfit', 'Plus Jakarta Sans', 'Google Sans', sans-serif;
-    font-weight: 800;
+    font-weight: 900;
     letter-spacing: -0.04em;
     color: #020617;
   }
@@ -24,51 +28,51 @@
 /* Particle Dash Animation Keyframes */
 @keyframes dash-float-1 {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(12deg); }
+  50% { transform: translateY(-16px) rotate(14deg); }
 }
 
 @keyframes dash-float-2 {
   0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(-14deg); }
+  50% { transform: translateY(-24px) rotate(-16deg); }
 }
 
 @keyframes dash-float-3 {
   0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-12px) scale(1.2); }
+  50% { transform: translateY(-14px) scale(1.25); }
 }
 
 .animate-dash-1 { animation: dash-float-1 5s ease-in-out infinite; }
 .animate-dash-2 { animation: dash-float-2 7s ease-in-out infinite; }
 .animate-dash-3 { animation: dash-float-3 6s ease-in-out infinite; }
 
-/* Bold Pill Button & Glass Utilities */
+/* Scaled Up Pill Button & Glass Utilities */
 .pulse-pill-primary {
   background-color: #020617;
   color: #ffffff;
   border-radius: 9999px;
-  padding: 0.875rem 1.75rem;
-  font-weight: 800;
-  font-size: 0.925rem;
+  padding: 1rem 2rem;
+  font-weight: 900;
+  font-size: 1rem;
   letter-spacing: -0.01em;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px 0 rgba(2, 6, 23, 0.2);
+  box-shadow: 0 6px 20px 0 rgba(2, 6, 23, 0.25);
 }
 
 .pulse-pill-primary:hover {
   background-color: #0f172a;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px 0 rgba(2, 6, 23, 0.3);
+  box-shadow: 0 10px 28px 0 rgba(2, 6, 23, 0.35);
 }
 
 .pulse-pill-secondary {
   background-color: #f1f5f9;
   color: #0f172a;
   border-radius: 9999px;
-  padding: 0.875rem 1.75rem;
-  font-weight: 800;
-  font-size: 0.925rem;
+  padding: 1rem 2rem;
+  font-weight: 900;
+  font-size: 1rem;
   letter-spacing: -0.01em;
-  border: 1.5px solid #e2e8f0;
+  border: 2px solid #cbd5e1;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -79,35 +83,35 @@
 }
 
 .glass-nav-pulse {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1.5px solid rgba(226, 232, 240, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 2px solid rgba(226, 232, 240, 0.9);
 }
 
 .glass-card-pulse {
   background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 1.75rem;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+  border: 2px solid #e2e8f0;
+  border-radius: 2rem;
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.04);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-pulse:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.09);
+  border-color: #94a3b8;
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.12);
 }
 
 /* Background Subtle Dot Mesh Grid */
 .bg-grid-dots {
-  background-size: 32px 32px;
-  background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
+  background-size: 36px 36px;
+  background-image: radial-gradient(circle, #cbd5e1 1.5px, transparent 1.5px);
 }
 
 /* Clean Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -115,7 +119,7 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #94a3b8;
   border-radius: 9999px;
 }
 

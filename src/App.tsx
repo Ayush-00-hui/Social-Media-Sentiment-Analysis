@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Header, TabType } from "./components/Header";
+import { Navbar, TabType } from "./components/Navbar";
 import { HeroSection } from "./components/HeroSection";
 import { AboutUsSection } from "./components/AboutUsSection";
 import { LiveGauge } from "./components/LiveGauge";
@@ -235,8 +235,8 @@ export default function App() {
           </div>
         )}
 
-        {/* Global Header & Navigation */}
-        <Header
+        {/* Global Navigation Bar */}
+        <Navbar
           stats={stats}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -246,7 +246,7 @@ export default function App() {
         />
 
         {/* Main Container */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        <main className="max-w-[92rem] mx-auto px-6 sm:px-8 lg:px-12 mt-8 mb-16">
           {activeTab === "overview" && (
             <div>
               <HeroSection
