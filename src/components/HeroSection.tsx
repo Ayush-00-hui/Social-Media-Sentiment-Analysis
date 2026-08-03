@@ -66,7 +66,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
       <div style={S.section} className="bg-dot-grid">
         <div style={S.badge}>
           <span className="live-dot" />
-          Real-Time Social Intelligence · Traccia
+          Real-Time News Intelligence · Traccia
         </div>
 
         <h1 style={S.h1}>
@@ -75,7 +75,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
         </h1>
 
         <p style={S.subtitle}>
-          Traccia ingests live social streams, runs DistilBERT SST-2 inference,
+          Traccia ingests live news streams, runs DistilBERT SST-2 inference,
           and fires statistical Z-Score anomaly alerts before PR crises escalate.
         </p>
 

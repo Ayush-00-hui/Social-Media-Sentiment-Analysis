@@ -7,12 +7,12 @@ import {
 } from "lucide-react";
 import { Tweet } from "../types";
 
-interface TweetsFeedProps {
+interface NewsFeedProps {
   tweets: Tweet[];
   onAnalyzeTweet: (tweetText: string) => void;
 }
 
-export const TweetsFeed: React.FC<TweetsFeedProps> = ({
+export const TweetsFeed: React.FC<NewsFeedProps> = ({
   tweets,
   onAnalyzeTweet,
 }) => {
@@ -43,10 +43,10 @@ export const TweetsFeed: React.FC<TweetsFeedProps> = ({
         <div>
           <h2 className="text-base font-extrabold text-slate-950 flex items-center space-x-2">
             <MessageSquare className="w-5 h-5 text-indigo-600" />
-            <span>Real-Time Filtered Social Feed</span>
+            <span>Real-Time News Monitor</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Live Twitter / X stream with NLP emotion breakdown & sarcasm detection
+            Live news stream with NLP emotion breakdown & sentiment tracking
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export const TweetsFeed: React.FC<TweetsFeedProps> = ({
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
-              placeholder="Filter by keyword / handle..."
+              placeholder="Filter by keyword / publisher..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8 pr-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 w-44 sm:w-56 font-medium"
@@ -87,7 +87,7 @@ export const TweetsFeed: React.FC<TweetsFeedProps> = ({
       <div className="space-y-3 overflow-y-auto pr-1 flex-1 scrollbar-thin scrollbar-thumb-slate-300">
         {filteredTweets.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs font-medium">
-            No social media comments match the active filter criteria.
+            No news articles match the active filter criteria.
           </div>
         ) : (
           filteredTweets.map((tweet) => (
@@ -106,18 +106,13 @@ export const TweetsFeed: React.FC<TweetsFeedProps> = ({
               {/* User Header */}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center space-x-2.5">
-                  <img
-                    src={tweet.avatar}
-                    alt={tweet.author}
-                    className="w-8 h-8 rounded-full bg-slate-200 border border-slate-300"
-                  />
+                  <div className="w-8 h-8 rounded-lg bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-slate-500 font-mono-code text-[10px]">
+                    {tweet.author.charAt(0).toUpperCase()}
+                  </div>
                   <div>
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-extrabold text-slate-950">
                         {tweet.author}
-                      </span>
-                      <span className="text-[11px] text-slate-500 font-mono-code font-bold">
-                        {tweet.handle}
                       </span>
                     </div>
                     <span className="text-[10px] text-indigo-700 font-mono-code font-bold">

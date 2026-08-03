@@ -293,7 +293,7 @@ export default function App() {
                     <div style={{ width: 24, height: 24, border: '3px solid #5f6368', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
                   </div>
                   <h3 style={{ fontSize: '1.25rem', color: '#202124', marginBottom: 8 }}>Collecting your first data</h3>
-                  <p style={{ color: '#5f6368' }}>The social media scraper is running. Check back in a few minutes as tweets matching your keywords start rolling in.</p>
+                  <p style={{ color: '#5f6368' }}>The news scraper is running. Check back in a few minutes as articles matching your keywords start rolling in.</p>
                 </div>
               ) : (
                 <>

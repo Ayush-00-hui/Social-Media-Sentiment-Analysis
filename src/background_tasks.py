@@ -10,14 +10,14 @@ from sqlalchemy.orm import Session
 from src.db.models import SessionLocal, TweetModel, SentimentScoreModel, CrisisAlertModel, HourlyAggregateModel
 from src.sentiment_analyzer import SentimentAnalyzer
 from src.crisis_detector import CrisisDetector
-from src.twitter_scraper import TwitterScraper
+from src.news_scraper import NewsScraper
 from src.logging_config import get_logger
 
 logger = get_logger("BackgroundTasks")
 
 analyzer = SentimentAnalyzer()
 crisis_detector = CrisisDetector(z_threshold=2.5)
-scraper = TwitterScraper()
+scraper = NewsScraper()
 
 _running = False
 
@@ -66,7 +66,7 @@ def ingest_and_process_tweets(db: Session, keywords: List[str] = None) -> int:
         processed_count += 1
 
     db.commit()
-    logger.info(f"Ingested & processed {processed_count} new tweets into DB.")
+    logger.info(f"Ingested & processed {processed_count} new news articles into DB.")
     return processed_count
 
 def run_crisis_detection_job(db: Session) -> Dict[str, Any]:
