@@ -20,20 +20,20 @@ export const SentimentChart: React.FC<SentimentChartProps> = ({ history }) => {
   const [metric, setMetric] = useState<"sentiment" | "zscore">("sentiment");
 
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-white shadow-xl flex flex-col justify-between">
+    <div className="glass-card-light bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 text-slate-900 dark:text-white shadow-md flex flex-col justify-between">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>
-          <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
-            <Clock className="w-4 h-4 text-cyan-400" />
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-cyan-400" />
             <span>24-Hour Sentiment & Anomaly Trend</span>
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Real-time hourly time series with Z-score spike indicators
           </p>
         </div>
 
         {/* Toggle View */}
-        <div className="flex bg-slate-800 p-1 rounded-lg border border-slate-700/80 text-xs">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs">
           <button
             onClick={() => setMetric("sentiment")}
             className={`px-3 py-1 rounded-md font-medium transition-all ${

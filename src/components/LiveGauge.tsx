@@ -30,15 +30,15 @@ export const LiveGauge: React.FC<LiveGaugeProps> = ({
   }
 
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-white shadow-xl flex flex-col justify-between">
+    <div className="glass-card-light bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 text-slate-900 dark:text-white shadow-md flex flex-col justify-between">
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
               <span>Live Brand Sentiment Health</span>
-              <Info className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
+              <Info className="w-4 h-4 text-slate-400 hover:text-slate-600 cursor-pointer" />
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Aggregated real-time stream vector score
             </p>
           </div>

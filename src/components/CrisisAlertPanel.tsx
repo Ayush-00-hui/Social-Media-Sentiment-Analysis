@@ -28,14 +28,14 @@ export const CrisisAlertPanel: React.FC<CrisisAlertPanelProps> = ({
   };
 
   return (
-    <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 text-white shadow-xl">
+    <div className="glass-card-light bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 p-6 text-slate-900 dark:text-white shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
+          <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
             <ShieldAlert className="w-5 h-5 text-rose-500 animate-pulse" />
             <span>Crisis & Anomaly Alert Center</span>
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Real-time PR crisis alerts detected by Z-Score anomaly engine
           </p>
         </div>

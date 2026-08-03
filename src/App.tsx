@@ -26,26 +26,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [isTriggeringSpike, setIsTriggeringSpike] = useState(false);
   const [sandboxInitialText, setSandboxInitialText] = useState<string>("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Toast Notification
   const [toast, setToast] = useState<{ message: string; type: "success" | "alert" } | null>(null);
 
-  // Toggle Dark / Light Theme
-  const handleToggleDarkMode = () => {
-    setIsDarkMode((prev) => {
-      const next = !prev;
-      if (next) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-      return next;
-    });
-  };
-
   useEffect(() => {
-    // Default to clean Light Mode
+    // Force light theme
     document.documentElement.classList.remove("dark");
   }, []);
 
@@ -217,13 +203,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#030712] text-slate-900 dark:text-slate-100 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-white text-slate-900 font-sans antialiased selection:bg-indigo-500 selection:text-white pb-12 relative overflow-hidden">
       {/* Google Antigravity Light Ambient Background Canvas */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute -top-32 -left-32 w-[36rem] h-[36rem] bg-indigo-200/40 dark:bg-cyan-600/15 rounded-full blur-[140px] animate-orb-light-1" />
-        <div className="absolute top-1/3 -right-32 w-[40rem] h-[40rem] bg-cyan-200/35 dark:bg-indigo-600/15 rounded-full blur-[140px] animate-orb-light-2" />
-        <div className="absolute -bottom-32 left-1/3 w-[42rem] h-[42rem] bg-violet-200/30 dark:bg-violet-600/10 rounded-full blur-[140px]" />
-        <div className="absolute inset-0 bg-grid-dots opacity-40 dark:opacity-20" />
+        <div className="absolute -top-32 -left-32 w-[36rem] h-[36rem] bg-indigo-200/40 rounded-full blur-[140px] animate-orb-light-1" />
+        <div className="absolute top-1/3 -right-32 w-[40rem] h-[40rem] bg-cyan-200/35 rounded-full blur-[140px] animate-orb-light-2" />
+        <div className="absolute -bottom-32 left-1/3 w-[42rem] h-[42rem] bg-violet-200/30 rounded-full blur-[140px]" />
+        <div className="absolute inset-0 bg-grid-dots opacity-40" />
       </div>
 
       {/* Main Relative Layer */}
@@ -231,16 +217,16 @@ export default function App() {
         {/* Toast Notification */}
         {toast && (
           <div
-            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-2xl flex items-center space-x-3 transition-all ${
+            className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl border shadow-xl flex items-center space-x-3 transition-all ${
               toast.type === "alert"
-                ? "bg-rose-950/90 text-rose-200 border-rose-800"
-                : "bg-emerald-950/90 text-emerald-200 border-emerald-800"
+                ? "bg-rose-600 text-white border-rose-500"
+                : "bg-emerald-600 text-white border-emerald-500"
             }`}
           >
             {toast.type === "alert" ? (
-              <AlertTriangle className="w-5 h-5 text-rose-400 animate-bounce" />
+              <AlertTriangle className="w-5 h-5 text-amber-200 animate-bounce" />
             ) : (
-              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              <CheckCircle2 className="w-5 h-5 text-white" />
             )}
             <span className="text-xs font-semibold">{toast.message}</span>
             <button onClick={() => setToast(null)} className="ml-2 hover:opacity-80">
@@ -257,8 +243,6 @@ export default function App() {
           onToggleStream={handleToggleStream}
           onSimulateSpike={handleSimulateSpike}
           isTriggeringSpike={isTriggeringSpike}
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={handleToggleDarkMode}
         />
 
         {/* Main Container */}
