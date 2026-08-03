@@ -1,57 +1,140 @@
-# Traccia Platform - PowerShell Backend + ngrok Startup Script
-Write-Host "===================================================" -ForegroundColor Cyan
-Write-Host "  TRACCIA PLATFORM - BACKEND + NGROK TUNNEL SETUP" -ForegroundColor Cyan
-Write-Host "  FastAPI :8001 + https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Cyan
-Write-Host "===================================================" -ForegroundColor Cyan
-Write-Host ""
+# ============================================================================
+# setup_backend.ps1
+# Zero-to-running setup for the Traccia Platform (FastAPI + Vite + n8n).
+#
+# What this script DOES automate:
+#   - Checks Python + pip are installed
+#   - Creates a virtual environment (venv)
+#   - Installs all Python dependencies from requirements.txt
+#   - Creates a working .env file from .env.example (if missing)
+#   - Runs Database init schema
+#   - Sets up ngrok authtoken from .env and launches tunnel
+#   - Starts the FastAPI server and opens status page
+#
+# USAGE:
+#   1. Open PowerShell in the project folder
+#   2. Run:  powershell -ExecutionPolicy Bypass -File setup_backend.ps1
+# ============================================================================
 
-# Check Python Installation
-$pythonCheck = Get-Command python -ErrorAction SilentlyContinue
-if (-not $pythonCheck) {
-    Write-Host "[ERROR] Python is not installed or not in PATH!" -ForegroundColor Red
-    Write-Host "Please install Python 3.10+ from https://python.org" -ForegroundColor Yellow
+$ErrorActionPreference = "Stop"
+
+function Write-Step($msg) {
+    Write-Host ""
+    Write-Host "==> $msg" -ForegroundColor Cyan
+}
+
+function Write-Ok($msg) {
+    Write-Host "    OK: $msg" -ForegroundColor Green
+}
+
+function Write-Warn($msg) {
+    Write-Host "    WARNING: $msg" -ForegroundColor Yellow
+}
+
+function Write-Fail($msg) {
+    Write-Host "    ERROR: $msg" -ForegroundColor Red
+}
+
+# -- 0. Confirm we're in the right folder ------------------------------------
+Write-Step "Checking you're in the project folder"
+if (-not (Test-Path ".\src\app.py")) {
+    Write-Fail "src\app.py not found in the current folder."
+    Write-Host "    cd into the folder where you extracted/cloned the project, then re-run this script."
+    exit 1
+}
+Write-Ok "Found src\app.py - we're in the right place."
+
+# -- 0.5 Strip Anaconda from PATH for this process --
+if ($env:PATH -match "anaconda") {
+    Write-Step "Anaconda detected on PATH - excluding it for this session to avoid DLL conflicts"
+    $env:PATH = ($env:PATH -split ';' | Where-Object { $_ -notmatch 'anaconda' }) -join ';'
+    Write-Ok "Anaconda paths excluded (only for this PowerShell session)"
+}
+
+# -- 1. Check Python ------------------------------------------------------
+Write-Step "Checking Python installation"
+$pythonCmd = $null
+foreach ($cmd in @("py -3.11", "py -3.10", "py", "python")) {
+    try {
+        $verOutput = & cmd /c "$cmd --version" 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $pythonCmd = $cmd
+            Write-Ok "$cmd -> $verOutput"
+            break
+        }
+    } catch { }
+}
+if (-not $pythonCmd) {
+    Write-Fail "Python not found on PATH."
+    Write-Host "    Install Python 3.10+ from https://www.python.org/downloads/"
+    Write-Host "    IMPORTANT: during install, check 'Add python.exe to PATH'."
     exit 1
 }
 
-# Create .env if missing
-if (-not (Test-Path ".env")) {
-    Write-Host "[INFO] Creating .env from .env.example template..." -ForegroundColor Yellow
-    Copy-Item ".env.example" ".env"
-    Write-Host "[SUCCESS] .env created." -ForegroundColor Green
+# -- 2. Set up .env -------------------------------------------------------
+Write-Step "Setting up .env file"
+if (-not (Test-Path ".\.env")) {
+    if (Test-Path ".\.env.example") {
+        Copy-Item ".\.env.example" ".\.env"
+        Write-Ok "Created .env from .env.example (defaults to local SQLite DB)"
+    } else {
+        Write-Warn ".env.example not found - skipping."
+    }
+} else {
+    Write-Ok ".env already exists, leaving it untouched"
 }
 
-# Create Python Virtual Environment
-if (-not (Test-Path ".venv")) {
-    Write-Host "[INFO] Creating virtual environment (.venv)..." -ForegroundColor Yellow
-    python -m venv .venv
-    Write-Host "[SUCCESS] .venv created." -ForegroundColor Green
+# -- 3. Create virtual environment ---------------------------------------
+Write-Step "Setting up virtual environment (.venv)"
+if (-not (Test-Path ".\.venv")) {
+    & cmd /c "$pythonCmd -m venv .venv"
+    Write-Ok "Created .venv"
+} else {
+    Write-Ok ".venv already exists, reusing it"
 }
 
-# Activate Virtual Environment
-Write-Host "[INFO] Activating virtual environment..." -ForegroundColor Yellow
-& .\.venv\Scripts\Activate.ps1
+$venvPython = ".\.venv\Scripts\python.exe"
+$venvPip    = ".\.venv\Scripts\pip.exe"
 
-# Install Dependencies
-Write-Host "[INFO] Installing Python packages from requirements.txt..." -ForegroundColor Yellow
-pip install -r requirements.txt --quiet
-Write-Host "[SUCCESS] Dependencies installed." -ForegroundColor Green
+# -- 4. Install dependencies ---------------------------------------------
+Write-Step "Installing Python dependencies from requirements.txt (this downloads PyTorch, can take 5-15 min on first run)"
+& $venvPython -m pip install --upgrade pip
+& $venvPip install -r requirements.txt
+Write-Ok "Dependencies installed"
 
-# Initialize Database Schema
-Write-Host "[INFO] Running database schema setup..." -ForegroundColor Yellow
-python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] Database initialized.'); except Exception as e: print('[NOTE] Database init note:', e)"
+# -- 5. Initialize Database ---------------------------------------------
+Write-Step "Initializing Database Schema"
+& $venvPython -c "try: from src.db.models import init_db; init_db(); print('    OK: Database initialized.'); except Exception as e: print('    WARNING: Database init note:', e)"
 
-# Start ngrok tunnel in a new PowerShell window
+# -- 6. Ngrok Setup ------------------------------------------------------
+Write-Step "Starting ngrok tunnel for n8n webhooks"
+$ngrokToken = $null
+if (Test-Path ".\.env") {
+    $envContent = Get-Content ".\.env"
+    foreach ($line in $envContent) {
+        if ($line -match "^NGROK_AUTHTOKEN=(.*)") {
+            $ngrokToken = $matches[1]
+        }
+    }
+}
+if ($ngrokToken) {
+    Write-Ok "Found ngrok token, applying..."
+    & ngrok config add-authtoken $ngrokToken
+} else {
+    Write-Warn "No NGROK_AUTHTOKEN found in .env. ngrok tunnel might expire early."
+}
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+Write-Ok "ngrok started on https://diffuser-thousand-rule.ngrok-free.dev"
+
+# -- 7. Quick sanity import check ----------------------------------------
+Write-Step "Verifying key packages import correctly"
+& $venvPython -c 'import torch, transformers, fastapi, sqlalchemy; print("torch", torch.__version__); print("transformers", transformers.__version__); print("fastapi", fastapi.__version__)'
+Write-Ok "Core packages OK"
+
+# -- 8. Start the backend ------------------------------------------------
+Write-Step "Starting FastAPI backend on http://0.0.0.0:8001"
+Write-Host "    Press CTRL+C to stop the server."
+Write-Host "    Leave this window open - closing it stops the backend."
 Write-Host ""
-Write-Host "[INFO] Launching ngrok static tunnel in new window..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http 8001 --domain=diffuser-thousand-rule.ngrok-free.dev"
-Write-Host "[SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Green
-
-Write-Host ""
-Write-Host "===================================================" -ForegroundColor Green
-Write-Host "  STARTING FASTAPI BACKEND ON PORT 8001" -ForegroundColor Green
-Write-Host "  Local:  http://localhost:8001/docs" -ForegroundColor Green
-Write-Host "  Public: https://diffuser-thousand-rule.ngrok-free.dev/docs" -ForegroundColor Green
-Write-Host "===================================================" -ForegroundColor Green
-Write-Host ""
-
-uvicorn src.app:app --host "::" --port 8001 --reload
+Start-Process "http://localhost:8001/"
+& $venvPython -m uvicorn src.app:app --host 0.0.0.0 --port 8001 --reload
