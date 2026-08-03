@@ -1,6 +1,7 @@
-# Traccia Platform - PowerShell Backend Setup Script
+# Traccia Platform - PowerShell Backend + ngrok Startup Script
 Write-Host "===================================================" -ForegroundColor Cyan
-Write-Host "  TRACCIA PLATFORM - POWERSHELL BACKEND SETUP" -ForegroundColor Cyan
+Write-Host "  TRACCIA PLATFORM - BACKEND + NGROK TUNNEL SETUP" -ForegroundColor Cyan
+Write-Host "  FastAPI :8000 + https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Cyan
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -32,16 +33,24 @@ Write-Host "[INFO] Activating virtual environment..." -ForegroundColor Yellow
 
 # Install Dependencies
 Write-Host "[INFO] Installing Python packages from requirements.txt..." -ForegroundColor Yellow
-pip install -r requirements.txt
+pip install -r requirements.txt --quiet
+Write-Host "[SUCCESS] Dependencies installed." -ForegroundColor Green
 
 # Initialize Database Schema
 Write-Host "[INFO] Running database schema setup..." -ForegroundColor Yellow
-python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] Database initialized.'); except Exception as e: print('[NOTE] Database initialization note:', e)"
+python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] Database initialized.'); except Exception as e: print('[NOTE] Database init note:', e)"
+
+# Start ngrok tunnel in a new PowerShell window
+Write-Host ""
+Write-Host "[INFO] Launching ngrok static tunnel in new window..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http 8000 --domain=diffuser-thousand-rule.ngrok-free.dev"
+Write-Host "[SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "===================================================" -ForegroundColor Green
-Write-Host "  SETUP COMPLETE! RUNNING BACKEND FASTAPI SERVER" -ForegroundColor Green
-Write-Host "  FastAPI Endpoint: http://localhost:8000" -ForegroundColor Green
+Write-Host "  STARTING FASTAPI BACKEND ON PORT 8000" -ForegroundColor Green
+Write-Host "  Local:  http://localhost:8000/docs" -ForegroundColor Green
+Write-Host "  Public: https://diffuser-thousand-rule.ngrok-free.dev/docs" -ForegroundColor Green
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 

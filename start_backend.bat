@@ -1,8 +1,9 @@
 @echo off
-TITLE Traccia Platform - Local Backend Service
+TITLE Traccia Platform - Backend + ngrok Tunnel
 COLOR 0A
 echo ===================================================
 echo   TRACCIA PLATFORM - LOCAL BACKEND STARTUP SCRIPT
+echo   FastAPI on :8000 + ngrok static tunnel
 echo ===================================================
 echo.
 
@@ -10,7 +11,7 @@ echo.
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Python is not installed or not in PATH!
-    echo Please install Python 3.10 or 3.11 from https://python.org
+    echo Please install Python 3.10+ from https://python.org
     pause
     exit /b 1
 )
@@ -19,7 +20,7 @@ if %errorlevel% neq 0 (
 if not exist ".env" (
     echo [INFO] .env file not found. Copying from .env.example...
     copy ".env.example" ".env"
-    echo [SUCCESS] .env created. You can edit secret keys in .env if needed.
+    echo [SUCCESS] .env created. Edit secret keys in .env if needed.
     echo.
 )
 
@@ -43,13 +44,20 @@ echo.
 
 :: Initialize Database Tables (PostgreSQL or SQLite fallback)
 echo [INFO] Initializing Database Schema...
-python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] Database initialized cleanly.'); except Exception as e: print('[NOTE] Database initialization skipped or using SQLite fallback:', e)"
+python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] Database initialized cleanly.'); except Exception as e: print('[NOTE] Database initialization skipped:', e)"
+echo.
+
+:: Start ngrok static tunnel in a separate window
+echo [INFO] Starting ngrok static tunnel...
+start "Traccia ngrok Tunnel" cmd /k "ngrok http 8000 --domain=diffuser-thousand-rule.ngrok-free.dev"
+echo [SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev
 echo.
 
 :: Start FastAPI Backend Server
 echo ===================================================
-echo   STARTING FASTAPI BACKEND ENGINE ON PORT 8000
-echo   API Docs: http://localhost:8000/docs
+echo   FASTAPI BACKEND ENGINE STARTING ON PORT 8000
+echo   Local:  http://localhost:8000/docs
+echo   Public: https://diffuser-thousand-rule.ngrok-free.dev/docs
 echo ===================================================
 echo.
 
