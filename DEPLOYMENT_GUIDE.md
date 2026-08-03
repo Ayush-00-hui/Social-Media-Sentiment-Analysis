@@ -57,7 +57,7 @@ Create a `.env` file in the root directory:
 JWT_SECRET=your_super_secret_production_key
 CRISIS_EMAIL_LIST=client@company.com
 NGROK_AUTHTOKEN=your_ngrok_token  # If tunneling
-PORT=8000
+PORT=8001
 ```
 
 ### Step 3: Run FastAPI with Uvicorn / Gunicorn
@@ -67,7 +67,7 @@ For production, you should use `gunicorn` with `uvicorn` workers behind an Nginx
 pip install gunicorn
 
 # Run daemonized
-gunicorn src.app:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --daemon
+gunicorn src.app:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8001 --daemon
 ```
 
 ### Step 4: Import n8n Workflow

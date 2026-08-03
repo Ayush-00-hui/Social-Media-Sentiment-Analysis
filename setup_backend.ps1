@@ -1,7 +1,7 @@
 # Traccia Platform - PowerShell Backend + ngrok Startup Script
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host "  TRACCIA PLATFORM - BACKEND + NGROK TUNNEL SETUP" -ForegroundColor Cyan
-Write-Host "  FastAPI :8000 + https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Cyan
+Write-Host "  FastAPI :8001 + https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Cyan
 Write-Host "===================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -43,15 +43,15 @@ python -c "try: from src.db.models import init_db; init_db(); print('[SUCCESS] D
 # Start ngrok tunnel in a new PowerShell window
 Write-Host ""
 Write-Host "[INFO] Launching ngrok static tunnel in new window..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http 8000 --domain=diffuser-thousand-rule.ngrok-free.dev"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http 8001 --domain=diffuser-thousand-rule.ngrok-free.dev"
 Write-Host "[SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "===================================================" -ForegroundColor Green
-Write-Host "  STARTING FASTAPI BACKEND ON PORT 8000" -ForegroundColor Green
-Write-Host "  Local:  http://localhost:8000/docs" -ForegroundColor Green
+Write-Host "  STARTING FASTAPI BACKEND ON PORT 8001" -ForegroundColor Green
+Write-Host "  Local:  http://localhost:8001/docs" -ForegroundColor Green
 Write-Host "  Public: https://diffuser-thousand-rule.ngrok-free.dev/docs" -ForegroundColor Green
 Write-Host "===================================================" -ForegroundColor Green
 Write-Host ""
 
-uvicorn src.app:app --host "::" --port 8000 --reload
+uvicorn src.app:app --host "::" --port 8001 --reload

@@ -32,7 +32,7 @@ services:
       dockerfile: docker/Dockerfile
     container_name: traccia-fastapi
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DATABASE_URL=postgresql://ayush_admin:secret_pass@postgres-db:5432/traccia_db
       - TWITTER_BEARER_TOKEN=\${TWITTER_BEARER_TOKEN}

@@ -21,7 +21,7 @@
    - Automatic crisis classification (`CRITICAL`, `HIGH`, `MODERATE`).
 
 3. **n8n Automated Workflow Escalation**:
-   - Production multi-stage workflow spec (`n8n-workflows/social-media-monitoring.json`).
+   - Production multi-stage workflow spec (`n8n-workflows/traccia-news-workflow.json`).
    - 30-second cron monitoring loop, Slack notification routing to `#eng-alerts`, and email executive digests.
 
 4. **Self-Hosted Infrastructure Spec**:
@@ -49,7 +49,7 @@ To launch BOTH the FastAPI backend and Vite frontend together in parallel window
 start_all_local.bat
 ```
 
-To launch ONLY the backend FastAPI server (`http://localhost:8000`):
+To launch ONLY the backend FastAPI server (`http://localhost:8001`):
 ```cmd
 start_backend.bat
 ```
@@ -81,7 +81,7 @@ start_backend.bat
 
 4. **Run FastAPI Backend**:
    ```bash
-   uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
+   uvicorn src.app:app --host 0.0.0.0 --port 8001 --reload
    ```
 
 5. **Run Vite Frontend**:
@@ -108,10 +108,10 @@ N8N_URL=http://localhost:5678
 
 # FastAPI Host & Port
 FASTAPI_HOST=0.0.0.0
-FASTAPI_PORT=8000
+FASTAPI_PORT=8001
 
 # Frontend Base API URL (Set for Vercel / Ngrok deployment)
-VITE_API_BASE_URL=http://localhost:8000
+VITE_API_BASE_URL=http://localhost:8001
 ```
 
 ---
@@ -124,7 +124,7 @@ VITE_API_BASE_URL=http://localhost:8000
    ```
 2. Open `http://localhost:5678` in your browser.
 3. Click **Workflows** $\rightarrow$ **Import from File**.
-4. Select `n8n-workflows/social-media-monitoring.json`.
+4. Select `n8n-workflows/traccia-news-workflow.json`.
 5. Toggle the switch to **Active**.
 
 ---

@@ -3,7 +3,7 @@ TITLE Traccia Platform - Backend + ngrok Tunnel
 COLOR 0A
 echo ===================================================
 echo   TRACCIA PLATFORM - LOCAL BACKEND STARTUP SCRIPT
-echo   FastAPI on :8000 + ngrok static tunnel
+echo   FastAPI on :8001 + ngrok static tunnel
 echo ===================================================
 echo.
 
@@ -49,18 +49,18 @@ echo.
 
 :: Start ngrok static tunnel in a separate window
 echo [INFO] Starting ngrok static tunnel...
-start "Traccia ngrok Tunnel" cmd /k "ngrok http 8000 --domain=diffuser-thousand-rule.ngrok-free.dev"
+start "Traccia ngrok Tunnel" cmd /k "ngrok http 8001 --domain=diffuser-thousand-rule.ngrok-free.dev"
 echo [SUCCESS] ngrok tunnel starting at https://diffuser-thousand-rule.ngrok-free.dev
 echo.
 
 :: Start FastAPI Backend Server
 echo ===================================================
-echo   FASTAPI BACKEND ENGINE STARTING ON PORT 8000
-echo   Local:  http://localhost:8000/docs
+echo   FASTAPI BACKEND ENGINE STARTING ON PORT 8001
+echo   Local:  http://localhost:8001/docs
 echo   Public: https://diffuser-thousand-rule.ngrok-free.dev/docs
 echo ===================================================
 echo.
 
-uvicorn src.app:app --host "::" --port 8000 --reload
+uvicorn src.app:app --host "::" --port 8001 --reload
 
 pause

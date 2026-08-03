@@ -1,13 +1,13 @@
 """
 Streamlit Real-Time Sentiment & Crisis Dashboard
-Connects directly to FastAPI backend service (http://localhost:8000) with auto-refresh and graceful offline fallbacks.
+Connects directly to FastAPI backend service (http://localhost:8001) with auto-refresh and graceful offline fallbacks.
 """
 import time
 import requests
 import streamlit as st
 import pandas as pd
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://localhost:8001"
 
 st.set_page_config(
     page_title="SentimentPulse AI - Real-Time Crisis Dashboard",
