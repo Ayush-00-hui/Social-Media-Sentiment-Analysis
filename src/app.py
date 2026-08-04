@@ -820,9 +820,36 @@ def start_n8n_tunnel(x_admin_secret: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
     
     try:
-        # Launch cloudflared tunnel for n8n in a detached new command window on Windows
-        subprocess.Popen('start cmd /k "echo Starting Cloudflare Tunnel for n8n... & cloudflared tunnel --url http://localhost:5678"', shell=True)
-        return {"status": "success", "message": "Cloudflare tunnel launch command triggered on the local PC. Check the local PC monitor for the TryCloudflare URL."}
+        import re
+        
+        # Clear old log if exists
+        if os.path.exists('tunnel.log'):
+            try:
+                os.remove('tunnel.log')
+            except:
+                pass
+                
+        # Launch cloudflared tunnel for n8n in the background, redirecting stderr to tunnel.log
+        # CREATE_NO_WINDOW (0x08000000) prevents the command prompt from flashing
+        subprocess.Popen('cloudflared tunnel --url http://localhost:5678 2> tunnel.log', shell=True, creationflags=0x08000000)
+        
+        # Poll the log file for up to 15 seconds to grab the TryCloudflare URL
+        url = None
+        for _ in range(30):
+            if os.path.exists('tunnel.log'):
+                with open('tunnel.log', 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read()
+                    match = re.search(r'(https://[a-zA-Z0-9-]+\.trycloudflare\.com)', content)
+                    if match:
+                        url = match.group(1)
+                        break
+            time.sleep(0.5)
+            
+        if url:
+            return {"status": "success", "url": url, "message": "Cloudflare tunnel started successfully."}
+        else:
+            return {"status": "error", "message": "Tunnel started, but couldn't fetch URL within 15s. Check tunnel.log."}
+            
     except Exception as e:
         logger.error(f"Failed to launch tunnel: {e}")
         raise HTTPException(status_code=500, detail=str(e))
