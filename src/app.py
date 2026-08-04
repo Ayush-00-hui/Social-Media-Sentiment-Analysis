@@ -821,7 +821,12 @@ def start_n8n_tunnel(x_admin_secret: str = Header(None)):
     
     try:
         import re
+        import urllib.request
         
+        # Auto-download cloudflared.exe if missing on Windows
+        if os.name == 'nt' and not os.path.exists('cloudflared.exe'):
+            urllib.request.urlretrieve('https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe', 'cloudflared.exe')
+            
         # Clear old log if exists
         if os.path.exists('tunnel.log'):
             try:
@@ -830,8 +835,8 @@ def start_n8n_tunnel(x_admin_secret: str = Header(None)):
                 pass
                 
         # Launch cloudflared tunnel for n8n in the background, redirecting stderr to tunnel.log
-        # CREATE_NO_WINDOW (0x08000000) prevents the command prompt from flashing
-        subprocess.Popen('cloudflared tunnel --url http://localhost:5678 2> tunnel.log', shell=True, creationflags=0x08000000)
+        cmd = 'cloudflared.exe' if os.name == 'nt' else 'cloudflared'
+        subprocess.Popen(f'{cmd} tunnel --url http://localhost:5678 2> tunnel.log', shell=True, creationflags=0x08000000 if os.name == 'nt' else 0)
         
         # Poll the log file for up to 15 seconds to grab the TryCloudflare URL
         url = None
