@@ -113,28 +113,28 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
     <div ref={heroRef} style={{ textAlign: "center" }}>
       {/* Hero */}
       <div style={S.section} className="bg-dot-grid">
-        <div className="anime-badge" style={{ ...S.badge, opacity: 0 }}>
+        <div className="anime-badge" style={S.badge}>
           <span className="live-dot" />
           Real-Time News Intelligence · Traccia
         </div>
 
         <h1 style={S.h1}>
-          <div className="anime-title-line" style={{ opacity: 0 }}>Monitor sentiment.</div>
-          <div className="anime-title-line" style={{ opacity: 0 }}>Detect crises early.</div>
+          <div className="anime-title-line">Monitor sentiment.</div>
+          <div className="anime-title-line">Detect crises early.</div>
         </h1>
 
-        <p className="anime-subtitle" style={{ ...S.subtitle, opacity: 0 }}>
+        <p className="anime-subtitle" style={S.subtitle}>
           Traccia ingests live news streams, runs DistilBERT SST-2 inference,
           and fires statistical Z-Score anomaly alerts before PR crises escalate.
         </p>
 
         <div style={S.actions}>
-          <button className="btn-primary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem", opacity: 0 }} onClick={() => onNavigateTab("dashboard")}>
+          <button className="btn-primary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("dashboard")}>
             <Terminal size={15} />
             Open Dashboard
             <ArrowRight size={15} />
           </button>
-          <button className="btn-secondary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem", opacity: 0 }} onClick={() => onNavigateTab("sandbox")}>
+          <button className="btn-secondary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("sandbox")}>
             <Cpu size={15} />
             NLP Sandbox
           </button>
@@ -142,24 +142,24 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
 
         {/* Metrics */}
         <div style={S.metricsGrid}>
-          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+          <div className="anime-metric" style={S.metricCell}>
             <div style={S.metricLabel}>Brand Health</div>
             <div style={S.metricValue}>{stats.currentScore}<span style={{ fontSize: "1rem" }}>/100</span></div>
             <div style={S.metricSub}>↑ Live aggregated</div>
           </div>
-          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+          <div className="anime-metric" style={S.metricCell}>
             <div style={S.metricLabel}>Signal Volume</div>
             <div style={S.metricValue}>{stats.totalAnalyzed.toLocaleString()}</div>
             <div style={S.metricSub}>All sources</div>
           </div>
-          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+          <div className="anime-metric" style={S.metricCell}>
             <div style={S.metricLabel}>Crisis Level</div>
             <div style={{ ...S.metricValue, color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#202124" }}>{stats.activeCrisisLevel}</div>
             <div style={{ ...S.metricSub, color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#9aa0a6" }}>
               Z-Score: {stats.zScore.toFixed(2)}
             </div>
           </div>
-          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+          <div className="anime-metric" style={S.metricCell}>
             <div style={S.metricLabel}>Latency</div>
             <div style={S.metricValue}>12<span style={{ fontSize: "1rem" }}>ms</span></div>
             <div style={S.metricSub}>Avg inference</div>
