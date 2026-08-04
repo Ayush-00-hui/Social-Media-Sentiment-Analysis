@@ -9,7 +9,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL", 
-    "postgresql://ayush_admin:secret_pass@postgres-db:5432/sentiment_db"
+    "sqlite:///./sentiment.db"
 )
 
 try:

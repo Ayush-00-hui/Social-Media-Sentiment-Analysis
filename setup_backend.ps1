@@ -123,8 +123,7 @@ if ($ngrokToken) {
 } else {
     Write-Warn "No NGROK_AUTHTOKEN found in .env. ngrok tunnel might expire early."
 }
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
-Write-Ok "ngrok started on https://diffuser-thousand-rule.ngrok-free.dev"
+Write-Ok "Setup Complete. Please run START.bat to launch the application stack."
 
 # -- 7. Quick sanity import check ----------------------------------------
 Write-Step "Verifying key packages import correctly"
@@ -132,9 +131,7 @@ Write-Step "Verifying key packages import correctly"
 Write-Ok "Core packages OK"
 
 # -- 8. Start the backend ------------------------------------------------
-Write-Step "Starting FastAPI backend on http://0.0.0.0:8001"
-Write-Host "    Press CTRL+C to stop the server."
-Write-Host "    Leave this window open - closing it stops the backend."
+Write-Step "Setup complete!"
+Write-Host "    The environment is configured and ready."
+Write-Host "    Please run START.bat to launch the backend, frontend, and tunnel."
 Write-Host ""
-Start-Process "http://localhost:8001/"
-& $venvPython -m uvicorn src.app:app --host 0.0.0.0 --port 8001 --reload

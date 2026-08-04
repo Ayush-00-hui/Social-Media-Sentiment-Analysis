@@ -19,16 +19,16 @@ start "Backend - FastAPI" cmd /k "cd /d ""%PROJECT_DIR%"" && set PATH=%PATH:anac
 REM Give the backend a few seconds head start before the tunnel connects to it
 timeout /t 5 /nobreak >nul
 
-REM -- 2. ngrok Tunnel (permanent static domain) --
-echo [2/4] Starting ngrok tunnel on https://diffuser-thousand-rule.ngrok-free.dev ...
+REM -- 2. ngrok Tunnel (dynamic domain) --
+echo [2/4] Starting ngrok tunnel on a dynamic domain ...
 set "NGROK_TOKEN="
 for /f "tokens=1,2 delims==" %%G IN (.env) DO (
     if "%%G"=="NGROK_AUTHTOKEN" set NGROK_TOKEN=%%H
 )
 if defined NGROK_TOKEN (
-    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok config add-authtoken %NGROK_TOKEN% && ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok config add-authtoken %NGROK_TOKEN% && ngrok http 8001"
 ) else (
-    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && echo WARNING: No NGROK_AUTHTOKEN found in .env && ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && echo WARNING: No NGROK_AUTHTOKEN found in .env && ngrok http 8001"
 )
 
 REM -- 3. n8n --
@@ -47,7 +47,7 @@ start http://localhost:5173/
 echo.
 echo All 4 windows launched:
 echo   - Backend window: watch for "Uvicorn running on http://0.0.0.0:8001"
-echo   - Tunnel window:  maintains https://diffuser-thousand-rule.ngrok-free.dev
+echo   - Tunnel window:  maintains ngrok forwarding url
 echo   - n8n window:     open http://localhost:5678 to manage workflows
 echo   - Frontend window: Vite dev server running Traccia Dashboard
 echo.
