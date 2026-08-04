@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import anime from "animejs";
 import { ArrowRight, ShieldAlert, Zap, Activity, Workflow, CheckCircle, Terminal, Cpu } from "lucide-react";
 import { StreamStats } from "../types";
 
@@ -60,32 +61,78 @@ const S: Record<string, React.CSSProperties> = {
 };
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }) => {
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!heroRef.current) return;
+    
+    // Serious, sleek timeline animation
+    const tl = anime.timeline({
+      easing: 'easeOutExpo',
+      duration: 1000
+    });
+
+    tl.add({
+      targets: '.anime-badge',
+      translateY: [20, 0],
+      opacity: [0, 1],
+      duration: 800
+    })
+    .add({
+      targets: '.anime-title-line',
+      translateY: [40, 0],
+      opacity: [0, 1],
+      delay: anime.stagger(150),
+      duration: 900
+    }, '-=600')
+    .add({
+      targets: '.anime-subtitle',
+      translateY: [20, 0],
+      opacity: [0, 1],
+      duration: 800
+    }, '-=700')
+    .add({
+      targets: '.anime-btn',
+      scale: [0.9, 1],
+      opacity: [0, 1],
+      delay: anime.stagger(100),
+      duration: 600
+    }, '-=600')
+    .add({
+      targets: '.anime-metric',
+      translateY: [20, 0],
+      opacity: [0, 1],
+      delay: anime.stagger(100),
+      duration: 800
+    }, '-=500');
+  }, []);
+
   return (
-    <div style={{ textAlign: "center" }}>
+    <div ref={heroRef} style={{ textAlign: "center" }}>
       {/* Hero */}
       <div style={S.section} className="bg-dot-grid">
-        <div style={S.badge}>
+        <div className="anime-badge" style={{ ...S.badge, opacity: 0 }}>
           <span className="live-dot" />
           Real-Time News Intelligence · Traccia
         </div>
 
         <h1 style={S.h1}>
-          Monitor sentiment.<br />
-          Detect crises early.
+          <div className="anime-title-line" style={{ opacity: 0 }}>Monitor sentiment.</div>
+          <div className="anime-title-line" style={{ opacity: 0 }}>Detect crises early.</div>
         </h1>
 
-        <p style={S.subtitle}>
+        <p className="anime-subtitle" style={{ ...S.subtitle, opacity: 0 }}>
           Traccia ingests live news streams, runs DistilBERT SST-2 inference,
           and fires statistical Z-Score anomaly alerts before PR crises escalate.
         </p>
 
         <div style={S.actions}>
-          <button className="btn-primary" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("dashboard")}>
+          <button className="btn-primary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem", opacity: 0 }} onClick={() => onNavigateTab("dashboard")}>
             <Terminal size={15} />
             Open Dashboard
             <ArrowRight size={15} />
           </button>
-          <button className="btn-secondary" style={{ padding: "12px 28px", fontSize: "0.9rem" }} onClick={() => onNavigateTab("sandbox")}>
+          <button className="btn-secondary anime-btn" style={{ padding: "12px 28px", fontSize: "0.9rem", opacity: 0 }} onClick={() => onNavigateTab("sandbox")}>
             <Cpu size={15} />
             NLP Sandbox
           </button>
@@ -93,25 +140,27 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
 
         {/* Metrics */}
         <div style={S.metricsGrid}>
-          <div style={S.metricCell}>
+          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
             <div style={S.metricLabel}>Brand Health</div>
             <div style={S.metricValue}>{stats.currentScore}<span style={{ fontSize: "1rem" }}>/100</span></div>
             <div style={S.metricSub}>↑ Live aggregated</div>
           </div>
-          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
-            <div style={S.metricLabel}>Z-Score Anomaly</div>
-            <div style={S.metricValue}>{stats.zScore > 0 ? `+${stats.zScore}` : stats.zScore}<span style={{ fontSize: "1rem" }}>σ</span></div>
-            <div style={{ ...S.metricSub, color: "#9aa0a6" }}>Threshold ≥ 2.5σ</div>
-          </div>
-          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
-            <div style={S.metricLabel}>Ingestion Rate</div>
-            <div style={S.metricValue}>{stats.tweetsPerMin}<span style={{ fontSize: "1rem" }}>tpm</span></div>
-            <div style={{ ...S.metricSub, color: "#1a73e8" }}>Tweepy v2 Stream</div>
-          </div>
-          <div style={{ ...S.metricCell, borderLeft: "1px solid #e8eaed", paddingLeft: 24 }}>
-            <div style={S.metricLabel}>Posts Analyzed</div>
+          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+            <div style={S.metricLabel}>Signal Volume</div>
             <div style={S.metricValue}>{stats.totalAnalyzed.toLocaleString()}</div>
-            <div style={{ ...S.metricSub, color: "#9334ea" }}>PostgreSQL indexed</div>
+            <div style={S.metricSub}>All sources</div>
+          </div>
+          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+            <div style={S.metricLabel}>Crisis Level</div>
+            <div style={S.metricValue} style={{ color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#202124" }}>{stats.activeCrisisLevel}</div>
+            <div style={S.metricSub} style={{ color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#9aa0a6" }}>
+              Z-Score: {stats.zScore.toFixed(2)}
+            </div>
+          </div>
+          <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
+            <div style={S.metricLabel}>Latency</div>
+            <div style={S.metricValue}>12<span style={{ fontSize: "1rem" }}>ms</span></div>
+            <div style={S.metricSub}>Avg inference</div>
           </div>
         </div>
       </div>
