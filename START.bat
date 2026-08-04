@@ -21,7 +21,7 @@ timeout /t 5 /nobreak >nul
 
 REM -- 2. ngrok Tunnel (dynamic domain) --
 echo [2/3] Starting ngrok tunnel on a dynamic domain ...
-start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && .venv\Scripts\python.exe -c ""import os; env=dict(line.strip().split('=',1) for line in open('.env') if '=' in line); t=env.get('NGROK_AUTHTOKEN', '').strip(' \x22\''); open('ngrok.yml','w').write('authtoken: '+t+'\n') if t else print('\nWARNING: No NGROK_AUTHTOKEN found in .env\n'); os.system('ngrok http 8001 --config ngrok.yml' if t else 'ngrok http 8001')"""
+start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && .venv\Scripts\python.exe -c ""import os; env=dict(line.strip().split('=',1) for line in open('.env') if '=' in line); t=env.get('NGROK_AUTHTOKEN', '').strip(' \x22\''); open('ngrok.yml','w').write('version: \x222\x22\nauthtoken: '+t+'\n') if t else print('\nWARNING: No NGROK_AUTHTOKEN found in .env\n'); os.system('ngrok http 8001 --config ngrok.yml' if t else 'ngrok http 8001')"""
 
 REM -- 3. n8n --
 echo [3/3] Starting n8n on http://localhost:5678 ...
