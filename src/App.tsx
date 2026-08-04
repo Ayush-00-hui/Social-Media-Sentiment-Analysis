@@ -23,6 +23,7 @@ import {
   AnalysisResult,
 } from "./types";
 import { CheckCircle2, AlertTriangle, X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
@@ -247,13 +248,20 @@ export default function App() {
         <main style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px 96px" }}>
           {activeTab === "overview" && (
             <div>
-              <HeroSection
-                stats={stats}
-                onNavigateTab={setActiveTab}
-                onSimulateSpike={handleSimulateSpike}
-                isTriggeringSpike={isTriggeringSpike}
-              />
-              <div className="space-y-6">
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}>
+                <HeroSection
+                  stats={stats}
+                  onNavigateTab={setActiveTab}
+                  onSimulateSpike={handleSimulateSpike}
+                  isTriggeringSpike={isTriggeringSpike}
+                />
+              </motion.div>
+              <motion.div 
+                className="space-y-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
+              >
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-1">
                     <LiveGauge
@@ -272,7 +280,7 @@ export default function App() {
                   alerts={alerts}
                   onTriggerWebhook={handleTriggerWebhook}
                 />
-              </div>
+              </motion.div>
             </div>
           )}
 
@@ -296,7 +304,11 @@ export default function App() {
                   <p style={{ color: '#5f6368' }}>The news scraper is running. Check back in a few minutes as articles matching your keywords start rolling in.</p>
                 </div>
               ) : (
-                <>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring", stiffness: 250, damping: 22 }}
+                >
                   <div style={{ display: "grid", gridTemplateColumns: "260px 1fr 340px", gap: 24, marginBottom: 24, alignItems: "stretch" }}>
                     <LiveGauge
                       score={stats.currentScore}
@@ -312,7 +324,7 @@ export default function App() {
                     <TweetsFeed tweets={tweets} onAnalyzeTweet={handleAnalyzeSpecificTweet} />
                     <BrandComparisonMatrix brands={brandComparisons} topTopics={topTopics} />
                   </div>
-                </>
+                </motion.div>
               )}
             </div>
           )}
