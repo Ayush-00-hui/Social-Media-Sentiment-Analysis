@@ -26,7 +26,7 @@ for /f "tokens=1,2 delims==" %%G IN (.env) DO (
     if "%%G"=="NGROK_AUTHTOKEN" set NGROK_TOKEN=%%H
 )
 if defined NGROK_TOKEN (
-    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && set NGROK_AUTHTOKEN=%NGROK_TOKEN% && ngrok http 8001"
+    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok http 8001 --authtoken=%NGROK_TOKEN%"
 ) else (
     start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && echo WARNING: No NGROK_AUTHTOKEN found in .env && ngrok http 8001"
 )
