@@ -70,6 +70,25 @@ export const LoginPage: React.FC<{ onNavigate: (page: 'signup') => void, onSucce
       <div style={{ marginTop: 24, textAlign: 'center', fontFamily: 'DM Sans', fontSize: '0.875rem', color: '#5f6368' }}>
         Don't have an account? <button onClick={() => onNavigate('signup')} style={{ background: 'none', border: 'none', color: '#4285F4', fontWeight: 700, cursor: 'pointer' }}>Sign Up</button>
       </div>
+
+      <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <button 
+          onClick={() => {
+            login("demo-token", {
+              email: "tester@traccia.local",
+              company_name: "Demo Corp",
+              brand_keywords: ["@DemoCorp"],
+              competitor_keywords: ["@Rival"],
+              notification_emails: [],
+              plan_tier: "Enterprise (Demo)"
+            });
+            onSuccess();
+          }} 
+          style={{ background: 'none', border: 'none', color: '#9aa0a6', fontSize: '0.8rem', textDecoration: 'underline', cursor: 'pointer', fontFamily: 'DM Sans' }}
+        >
+          Skip for UI Testing (Demo Mode)
+        </button>
+      </div>
     </div>
   );
 };
