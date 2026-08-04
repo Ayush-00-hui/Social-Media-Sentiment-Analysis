@@ -269,7 +269,7 @@ export default function App() {
                   </div>
                 </div>
                 <CrisisAlertPanel
-                  alerts={crisisAlerts}
+                  alerts={alerts}
                   onTriggerWebhook={handleTriggerWebhook}
                 />
               </div>
@@ -306,10 +306,10 @@ export default function App() {
                       isSpikeActive={stats.isSpikeActive}
                     />
                     <SentimentChart history={history} />
-                    <CrisisAlertPanel alerts={crisisAlerts} onTriggerWebhook={handleTriggerWebhook} />
+                    <CrisisAlertPanel alerts={alerts} onTriggerWebhook={handleTriggerWebhook} />
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 24 }}>
-                    <TweetsFeed tweets={recentTweets} onAnalyzeTweet={handleAnalyzeSpecificTweet} />
+                    <TweetsFeed tweets={tweets} onAnalyzeTweet={handleAnalyzeSpecificTweet} />
                     <BrandComparisonMatrix brands={brandComparisons} topTopics={topTopics} />
                   </div>
                 </>
