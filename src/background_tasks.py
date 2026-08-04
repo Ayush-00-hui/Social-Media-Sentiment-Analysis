@@ -133,7 +133,7 @@ def start_background_scheduler():
     global _running
     if not _running:
         _running = True
-        asyncio.create_task(background_loop())
+        asyncio.create_task(scheduler_loop())
 
 def stop_background_scheduler():
     global _running

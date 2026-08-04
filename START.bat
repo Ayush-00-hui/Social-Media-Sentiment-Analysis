@@ -21,7 +21,15 @@ timeout /t 5 /nobreak >nul
 
 REM -- 2. ngrok Tunnel (permanent static domain) --
 echo [2/4] Starting ngrok tunnel on https://diffuser-thousand-rule.ngrok-free.dev ...
-start "ngrok Tunnel" cmd /v:on /k "cd /d ""%PROJECT_DIR%"" && FOR /F ""tokens=1,2 delims=="" %%G IN (.env) DO (if %%G==NGROK_AUTHTOKEN set NGROK_TOKEN=%%H) & if defined NGROK_TOKEN (ngrok config add-authtoken !NGROK_TOKEN!) & ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+set "NGROK_TOKEN="
+for /f "tokens=1,2 delims==" %%G IN (.env) DO (
+    if "%%G"=="NGROK_AUTHTOKEN" set NGROK_TOKEN=%%H
+)
+if defined NGROK_TOKEN (
+    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok config add-authtoken %NGROK_TOKEN% && ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+) else (
+    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && echo WARNING: No NGROK_AUTHTOKEN found in .env && ngrok http --domain=diffuser-thousand-rule.ngrok-free.dev 8001"
+)
 
 REM -- 3. n8n --
 echo [3/4] Starting n8n on http://localhost:5678 ...

@@ -113,7 +113,7 @@ if (Test-Path ".\.env") {
     $envContent = Get-Content ".\.env"
     foreach ($line in $envContent) {
         if ($line -match "^NGROK_AUTHTOKEN=(.*)") {
-            $ngrokToken = $matches[1]
+            $ngrokToken = ($line -split '=')[1].Trim().Trim('""').Trim("''")
         }
     }
 }
