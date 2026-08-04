@@ -23,35 +23,32 @@ const NAV_LINKS: { id: TabType; label: string }[] = [
   { id: "about",      label: "About"          },
 ];
 
-/* Antigravity wordmark — each letter in a Google-brand color */
-const WORDMARK_COLORS = ["#4285F4", "#EA4335", "#FBBC05", "#4285F4", "#34A853", "#EA4335", "#4285F4"];
-const WORDMARK = "Traccia";
+import { BarChart2 } from "lucide-react";
 
 const WordMark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button
     onClick={onClick}
-    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 0 }}
+    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", gap: 10 }}
     aria-label="Go to overview"
   >
-    {WORDMARK.split("").map((char, i) => (
-      <span
-        key={i}
-        style={{
-          fontFamily: "'Syne', 'DM Sans', sans-serif",
-          fontWeight: 800,
-          fontSize: "1.375rem",
-          letterSpacing: "-0.04em",
-          color: WORDMARK_COLORS[i % WORDMARK_COLORS.length],
-          lineHeight: 1,
-          display: "inline-block",
-          transition: "transform 0.15s ease",
-        }}
-        onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
-        onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}
-      >
-        {char}
-      </span>
-    ))}
+    <div style={{
+      width: 36, height: 36, borderRadius: 8, background: "#202124",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      color: "white"
+    }}>
+      <BarChart2 size={20} strokeWidth={2.5} />
+    </div>
+    <span style={{
+      fontFamily: "var(--font-display)",
+      fontWeight: 800,
+      fontSize: "1.6rem",
+      letterSpacing: "0.02em",
+      color: "#202124",
+      lineHeight: 1,
+      textTransform: "uppercase"
+    }}>
+      Traccia
+    </span>
   </button>
 );
 
