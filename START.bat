@@ -22,9 +22,7 @@ timeout /t 5 /nobreak >nul
 REM -- 2. ngrok Tunnel (dynamic domain) --
 echo [2/3] Starting ngrok tunnel on a dynamic domain ...
 set "NGROK_TOKEN="
-for /f "tokens=1,2 delims==" %%G IN (.env) DO (
-    if "%%G"=="NGROK_AUTHTOKEN" set NGROK_TOKEN=%%H
-)
+for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "$val = (Get-Content .env | Select-String '(?i)^NGROK_AUTHTOKEN\s*=\s*(.*)' | Select-Object -First 1).Matches.Groups[1].Value; if ($val) { $val.Trim(' ''\"') }"`) do set NGROK_TOKEN=%%i
 if defined NGROK_TOKEN (
     start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok http 8001 --authtoken=%NGROK_TOKEN%"
 ) else (
