@@ -25,11 +25,13 @@ set "NGROK_TOKEN="
 for /f "tokens=1,2 delims==" %%G IN ('findstr /I "NGROK_AUTHTOKEN" .env 2^>nul') DO (
     set "NGROK_TOKEN=%%H"
 )
-if defined NGROK_TOKEN (
-    set "NGROK_TOKEN=%NGROK_TOKEN: =%"
-    set "NGROK_TOKEN=%NGROK_TOKEN:"=%"
-    set "NGROK_TOKEN=%NGROK_TOKEN:'=%"
-)
+
+if not defined NGROK_TOKEN goto skip_ngrok_strip
+set "NGROK_TOKEN=%NGROK_TOKEN: =%"
+set "NGROK_TOKEN=%NGROK_TOKEN:"=%"
+set "NGROK_TOKEN=%NGROK_TOKEN:'=%"
+:skip_ngrok_strip
+
 if defined NGROK_TOKEN (
     start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok http 8001 --authtoken=%NGROK_TOKEN%"
 ) else (
