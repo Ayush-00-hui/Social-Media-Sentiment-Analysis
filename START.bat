@@ -21,22 +21,7 @@ timeout /t 5 /nobreak >nul
 
 REM -- 2. ngrok Tunnel (dynamic domain) --
 echo [2/3] Starting ngrok tunnel on a dynamic domain ...
-set "NGROK_TOKEN="
-for /f "tokens=1,2 delims==" %%G IN ('findstr /I "NGROK_AUTHTOKEN" .env 2^>nul') DO (
-    set "NGROK_TOKEN=%%H"
-)
-
-if not defined NGROK_TOKEN goto skip_ngrok_strip
-set "NGROK_TOKEN=%NGROK_TOKEN: =%"
-set "NGROK_TOKEN=%NGROK_TOKEN:"=%"
-set "NGROK_TOKEN=%NGROK_TOKEN:'=%"
-:skip_ngrok_strip
-
-if defined NGROK_TOKEN (
-    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && ngrok http 8001 --authtoken=%NGROK_TOKEN%"
-) else (
-    start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && echo WARNING: No NGROK_AUTHTOKEN found in .env && ngrok http 8001"
-)
+start "ngrok Tunnel" cmd /k "cd /d ""%PROJECT_DIR%"" && .venv\Scripts\python.exe -c ""import os; env=dict(line.strip().split('=',1) for line in open('.env') if '=' in line); t=env.get('NGROK_AUTHTOKEN', '').strip(' \x22\''); open('ngrok.yml','w').write('authtoken: '+t+'\n') if t else print('\nWARNING: No NGROK_AUTHTOKEN found in .env\n'); os.system('ngrok http 8001 --config ngrok.yml' if t else 'ngrok http 8001')"""
 
 REM -- 3. n8n --
 echo [3/3] Starting n8n on http://localhost:5678 ...
