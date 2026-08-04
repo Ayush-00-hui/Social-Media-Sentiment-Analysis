@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import anime from "animejs";
+import { createTimeline, stagger } from "animejs";
 import { ArrowRight, ShieldAlert, Zap, Activity, Workflow, CheckCircle, Terminal, Cpu } from "lucide-react";
 import { StreamStats } from "../types";
 
@@ -67,27 +67,29 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
     if (!heroRef.current) return;
     
     // Serious, sleek timeline animation
-    const tl = anime.timeline({
-      easing: 'easeOutExpo',
-      duration: 1000
+    const tl = createTimeline({
+      defaults: {
+        ease: 'outExpo',
+        duration: 1000
+      }
     });
 
     tl.add({
       targets: '.anime-badge',
-      translateY: [20, 0],
+      y: [20, 0],
       opacity: [0, 1],
       duration: 800
     })
     .add({
       targets: '.anime-title-line',
-      translateY: [40, 0],
+      y: [40, 0],
       opacity: [0, 1],
-      delay: anime.stagger(150),
+      delay: stagger(150),
       duration: 900
     }, '-=600')
     .add({
       targets: '.anime-subtitle',
-      translateY: [20, 0],
+      y: [20, 0],
       opacity: [0, 1],
       duration: 800
     }, '-=700')
@@ -95,14 +97,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
       targets: '.anime-btn',
       scale: [0.9, 1],
       opacity: [0, 1],
-      delay: anime.stagger(100),
+      delay: stagger(100),
       duration: 600
     }, '-=600')
     .add({
       targets: '.anime-metric',
-      translateY: [20, 0],
+      y: [20, 0],
       opacity: [0, 1],
-      delay: anime.stagger(100),
+      delay: stagger(100),
       duration: 800
     }, '-=500');
   }, []);
@@ -152,8 +154,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats, onNavigateTab }
           </div>
           <div className="anime-metric" style={{ ...S.metricCell, opacity: 0 }}>
             <div style={S.metricLabel}>Crisis Level</div>
-            <div style={S.metricValue} style={{ color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#202124" }}>{stats.activeCrisisLevel}</div>
-            <div style={S.metricSub} style={{ color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#9aa0a6" }}>
+            <div style={{ ...S.metricValue, color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#202124" }}>{stats.activeCrisisLevel}</div>
+            <div style={{ ...S.metricSub, color: stats.activeCrisisLevel !== "LOW" ? "#ea4335" : "#9aa0a6" }}>
               Z-Score: {stats.zScore.toFixed(2)}
             </div>
           </div>
